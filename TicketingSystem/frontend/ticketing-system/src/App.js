@@ -5,6 +5,7 @@ import Ticketing from './Ticketing';
 import Home from './Home';
 import Navbar from './Navbar';
 import AdminTickets from './AdminTickets'
+import AdminDashboard from './AdminDashboard';
 const App = () => {
   return (
     <Router>
@@ -14,7 +15,7 @@ const App = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/ticketing" element={<Ticketing />} />
           <Route path="/home" element={<Home />} />
-          <Route path="/admin/dashboard" element={<Home />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/tickets" element={<AdminTickets />} />
           {/* Redirect any unknown routes to login */}
           <Route path="*" element={<Navigate to="/login" />} />

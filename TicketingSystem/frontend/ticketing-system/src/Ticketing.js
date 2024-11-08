@@ -8,7 +8,7 @@ const Ticketing = () => {
     TicketDesc: '',
     TicketServiceType: '',
     TicketServiceFor: '',
-    TicketStatus: '0', // Default value for Ticket Status
+    TicketStatus: '2', // Default value for Ticket Status
     NumOfComputers: '',
     NumOfUsers: '',
     TicketDeleteStatus: 0, // Default value for delete status

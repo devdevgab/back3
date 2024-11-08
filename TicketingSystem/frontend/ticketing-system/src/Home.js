@@ -78,6 +78,7 @@ const Home = () => {
     const [open, setOpen] = useState(false);
     const [selectedTicket, setSelectedTicket] = useState(null);
     const [userRole, setUserRole] = useState(null);
+    const [determineCloseOrOpen, setDetermineCloseOrOpen] = useState(null);
 
     useEffect(() => {
         let isMounted = true; // Track whether the component is mounted
@@ -111,6 +112,21 @@ const Home = () => {
             isMounted = false; // Set to false when unmounted
         };
     }, []);
+
+    // const fetchStatusTicket = async () =>{
+    //     try{
+    //         const response = await axios.get('http://localhost:8080/ticket-status',{ withCredentials: true});
+    //         setDetermineCloseOrOpen(response.data.ticketStatus);
+
+    //     }catch (error){
+    //         console.error("Error Fetching ticket status")
+
+    //     }
+    // };
+    // fetchStatusTicket()
+
+
+
 
     // useEffect(() => {
     //     tickets.forEach(ticket => console.log(ticket.ticketId)); // Log ticket IDs when tickets change
@@ -208,6 +224,9 @@ const Home = () => {
         }
     };
 
+    
+
+
     return (
         <Container component="main" maxWidth="lg">
             <Paper elevation={6} style={{ padding: '16px', marginTop: '32px' }}>
@@ -275,8 +294,45 @@ const Home = () => {
                                     </TableRow>
                                     <TableRow>
                                         <DetailTableCell><strong>Status</strong></DetailTableCell>
-                                        <DetailTableCell>{selectedTicket.ticketStatus}</DetailTableCell>
+                                        <DetailTableCell>
+
+                                        {selectedTicket.ticketStatus === "0" && (
+                                            <>
+                                                <span className="status-declined">
+                                                    Declined
+                                                </span>
+                                            </>
+                                        )}
+                                        {selectedTicket.ticketStatus === "1" && (
+                                            <>
+                                                <span className="status-accepted">
+                                                    Accepted
+                                                </span>
+                                            </>
+                                        )}
+                                        {selectedTicket.ticketStatus === "2" && (
+                                            <>
+                                                <span className="status-pending">
+                                                    Pending
+                                                </span>
+                                            </>
+                                        )}
+                                                                                {/* {selectedTicket.ticketStatus === '0' ? 
+                                        'Declined' : selectedTicket.ticketStatus === '1' ? 
+                                        'Accepted' : selectedTicket.ticketStatus === '2' ? 
+                                        'Pending' : 'Unknown'}  */}
+
+                                       
+
+
+                                        
+                                        </DetailTableCell>
                                     </TableRow>
+
+                                    {/* <TableRow>
+                                        <DetailTableCell><strong>Status</strong></DetailTableCell>
+                                        <DetailTableCell>{determineCloseOrOpen === 0 ? 'Open' : 'Closed'}</DetailTableCell>
+                                    </TableRow> */}
                                     <TableRow>
                                         <DetailTableCell><strong>Service Type</strong></DetailTableCell>
                                         <DetailTableCell>{selectedTicket.ticketServiceType}</DetailTableCell>

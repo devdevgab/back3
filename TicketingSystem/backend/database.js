@@ -46,6 +46,10 @@ export async function getTicketCategory(){
     const [rows] = await pool.query("select * from tbl_ticketcategory")
     return rows
 }
+export async function getTicketStatus(id){
+    const [rows] = await pool.query("select ticketStatus from tbl_tickets Where ticketId = ?", [id]);
+    return [rows]
+}
 
 export async function getTickets(){
     const [rows] = await pool.query("select * from tbl_tickets WHERE ticketDeleteStatus != 1")
@@ -63,34 +67,37 @@ export async function getUsers(){
 
 //Create function for user
 
-export async function createUser(FirstName, LastName, Username, Password, Email, Phone, Department){
-    const [result] = await pool.query(`INSERT INTO tbl_users (userFirstName, userLastName, username, passwrd, userEmail, userPhone, departmentName )
-    values (?,?,?,?,?,?,?)
-    `,[FirstName, LastName, Username, Password, Email, Phone, Department]) 
-    const id = result.insertId
-    return getUser(id)
+export async function createUser(firstName, lastName, username, password, email, phone, department) {
+  const [result] = await pool.query(
+    'INSERT INTO tbl_users (userFirstName, userLastName, username, passwrd, userEmail, userPhone, department) VALUES (?,?,?,?,?,?,?)',
+    [firstName, lastName, username, password, email, phone, department]
+  );
+  const id = result.insertId;
+  return getUser(id);
 
-    
+
 }
+// export async function createUser(req, res) {
+//     try {
+//       const user = new User(req.body);
+//       await user.save();
+//       res.json(user); // Return the newly created user data
+//     } catch (error) {
+//       console.error('Error creating user:', error);
+//       res.status(500).json({ error: 'Failed to create user' }); // Return an error message on failure
+//     }
+//   }
 
-
-export async function login(Username, Password) {
+export async function login(username, password) {
     try {
         const [users] = await pool.query(
             'SELECT * FROM tbl_users WHERE username = ? AND passwrd = ?',
-            [Username, Password]
+            [username, password]
         );
 
-        if (users.length > 0) {
-            // Return the user data if login is successful
-            return users[0]; // Return the first user
-        } else {
-            // Return null if login fails
-            return null;
-        }
+        return users[0] || null;
     } catch (error) {
-        console.error('Error querying database:', error);
-        throw error; // Rethrow the error to be handled in the calling function
+        throw error;
     }
 }
 
@@ -122,24 +129,7 @@ export async function createTicket(userId, TicketTitle, TicketDesc, TicketServic
 }
 
 
-// export async function updateNote(id, { title, content }) {
-//     try {
-//         const [result] = await pool.query('UPDATE notes SET title = ?, contents = ? WHERE id = ?', [title, content, id]);
 
-        
-//         if (result.affectedRows > 0) {
-           
-//             const updatedNote = await getNote(id);
-//             return updatedNote;
-//         } else {
-            
-//             return null;
-//         }
-//     } catch (error) {
-        
-//         throw error;
-//     }
-// }
 
 
 export async function updateTicket(id, {TicketTitle, TicketDesc, TicketServiceType, TicketServiceFor, TicketStatus }) {
@@ -191,73 +181,14 @@ export async function deleteTicket(id, {TicketDeleteStatus }) {
 
 
 
-// export async function getNote(id){
-//     const [rows] = await pool.query(`
-//     SELECT * 
-//     FROM notes
-//     WHERE id = ?
-//     `,[id])
-//     return rows[0]
-
-// }
-
-// //insert function
-// export async function createNote(title, content){
-//     const [result] = await pool.query(`INSERT INTO notes (title, contents)
-//     values (?,?)
-//     `,[title, content]) 
-//     const id = result.insertId
-//     return getNote(id)
-
-    
-// }
-
-// //function update
-// export async function updateNote(id, { title, content }) {
-//     try {
-//         const [result] = await pool.query('UPDATE notes SET title = ?, contents = ? WHERE id = ?', [title, content, id]);
-
-        
-//         if (result.affectedRows > 0) {
-           
-//             const updatedNote = await getNote(id);
-//             return updatedNote;
-//         } else {
-            
-//             return null;
-//         }
-//     } catch (error) {
-        
-//         throw error;
-//     }
-// }
-// //function delete
-// export async function deleteNote(id) {
-//     try {
-//         const [result] = await pool.query('DELETE FROM notes WHERE id = ?', [id]);
-
-       
-//         if (result.affectedRows > 0) {
-           
-//             return { deletedNoteID: id };
-//         } else {
-           
-//             return null;
-//         }
-//     } catch (error) {
-      
-//         throw error;
-//     }
-// }
-
 export async function getUserTickets(userId){
-    const query = `SELECT * FROM tbl_tickets WHERE ticketStatus =0 AND userId = ?`; // Adjust the table and column names as needed
+    const query = `SELECT * FROM tbl_tickets WHERE ticketStatus =0 OR ticketStatus=0  AND userId = ?`; // Adjust the table and column names as needed
     const [tickets] = await pool.execute(query, [userId]);
     return tickets;
   };
-export async function getAdminTickets(){
-    const query = `SELECT * FROM tbl_tickets WHERE ticketStatus = 0`; // Adjust the table and column names as needed
-    const [tickets] = await pool.execute(query);
+export async function getAdminTickets(id){
+    const query = `SELECT * FROM tbl_tickets WHERE userId = ?`; // Adjust the table and column names as needed
+    const [tickets] = await pool.execute(query, [id]);
     return tickets;
   };
   export async function getAllTickets(){
@@ -332,6 +263,10 @@ export async function checkLoginStatus() {
     }
   }
 
+
+
+  
+
   export async function checkUserRole() {
     try {
         const response = await axios.get('http://localhost:8080/check-role', { withCredentials: true });
@@ -342,3 +277,40 @@ export async function checkLoginStatus() {
     }
 }
   
+
+export async function makeAdmin(userId) {
+    if (!userId) {
+        throw new Error('Invalid userId');
+    }
+
+    // Assuming the role of '1' represents admin in your database
+    const [result] = await pool.query(
+        'UPDATE tbl_users SET role = 1 WHERE userId = ?',
+        [userId]
+    );
+
+    if (result.affectedRows === 0) {
+        throw new Error('User not found or already an admin');
+    }
+
+    return { message: 'User successfully promoted to admin' };
+}
+
+export async function makeUser(userId) {
+    if (!userId) {
+        throw new Error('Invalid userId');
+    }
+
+    // Assuming the role of '0' represents a regular user in your database
+    const [result] = await pool.query(
+        'UPDATE tbl_users SET role = 0 WHERE userId = ?',[userId]
+    );
+
+    if (result.affectedRows === 0) {
+        throw new Error('User not found or already a regular user');
+    }
+    console.log(userId)
+
+    return { message: 'User successfully demoted to regular user' };
+
+}

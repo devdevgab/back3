@@ -1,5 +1,5 @@
 import express from 'express'
-import {getUsers,getTickets, getAllTickets,createUser,login, createTicket,updateTicket,deleteTicket, getUserTickets, getAdminTickets, acceptTicket, declineTicket, checkLoginStatus, checkUserRole, getUser} from './database.js'
+import {getUsers,getTickets,makeAdmin,makeUser, getAllTickets,createUser,login, createTicket,updateTicket,deleteTicket, getUserTickets, getAdminTickets, acceptTicket, declineTicket, checkLoginStatus, checkUserRole, getUser} from './database.js'
 import bodyParser from 'body-parser'
 import session from 'express-session';
 import cors from 'cors';
@@ -13,19 +13,25 @@ const app = express()
 app.use(bodyParser.json())
 
 const corsOptions = {
-    origin: 'http://localhost:3000', // Allow only your client origin
-    methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed HTTP methods
-    allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
-    credentials: true, // Allow credentials (cookies, etc.)
-  };
-
+    origin: (origin, callback) => {
+        const allowedOrigins = ['http://localhost:3000', 'http://107.25.99.1:3000'];
+        if (allowedOrigins.includes(origin) || !origin) {  // !origin allows requests like Postman or server-side
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+};
 
 
 
 
 
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
+// app.options('*', cors(corsOptions));
 
 app.use(session({
     secret: 'your_secret_key', // Replace with a strong secret
@@ -36,30 +42,37 @@ app.use(session({
 
 
 
-
-
-app.get("/users", async (req, res)=>{
-    const userId = req.session.userId; // Get userId from session
+app.get("/admin-all-users", async (req, res)=>{
+    const userId = req.session.userId;
+    const userRole = req.session.role; // Get userId from session
 
     if (!userId) {
         return res.status(401).json({ message: 'User not logged in' });
     }
+    if(userRole !=1){
+        return res.status(401).json({ message: 'User not admin' });
+    }
+    
+
+    const data = await getUsers()
+    res.send(data)
+})
+
+app.get("/users", async (req, res)=>{
+    const userId = req.session.userId;
+    const userRole = req.session.role; // Get userId from session
+
+    if (!userId) {
+        return res.status(401).json({ message: 'User not logged in' });
+    }
+    
 
     const data = await getUsers()
     res.send(data)
 })
 
 
-// app.get("/tickets", async (req, res)=>{
-//     const userId = req.session.userId; // Get userId from session
-
-//     if (!userId) {
-//         return res.status(401).json({ message: 'User not logged in' });
-//     }
-
-//     const data = await getTickets()
-//     res.send(data)
-// })
+ 
 
 app.get("/admin/tickets", async (req, res) =>{
     const userId = req.session.userId; // Get userId from session
@@ -123,7 +136,7 @@ app.get('/check-login', (req, res) => {
 
 
 app.post("/create", async (req, res)=>{
-   
+    const userRole = req.session.role;
     const { FirstName, LastName, Username, Password, Email, Phone, Department } = req.body
 
     if (!FirstName || !LastName || !Username || !Password|| !Email || !Phone || !Department) {
@@ -131,7 +144,9 @@ app.post("/create", async (req, res)=>{
 
     }
 
-
+    if(userRole !=1){
+        return res.status(401).json({ message: 'User not admin error creating ' });
+    }
 
     try{
     const users = await createUser(FirstName, LastName, Username, Password, Email, Phone, Department)
@@ -354,47 +369,71 @@ app.get("/check-role", (req, res) => {
 
 
 
+app.put('/make-admin/:id', async (req, res) => {
+    const userId = req.session.userId;  // Get logged-in userId from session
+    const role = req.session.role;  // Get logged-in user role from session
+    const sessionUser = req.session.userId;
 
-
-
-
-
-
-
-//function edit route
-// app.put("/notes/:id", async (req, res) => {
-//     const { id } = req.params;
-//     const { title, content } = req.body;
-
-//     if (!title && !content) {
-//         return res.status(400).send("At least one field (title or content) is required for update");
-//     }
-
-//     try {
+    if (!sessionUser ) {
+        console.log(userId)
+        return res.status(403).json({ message: 'user not verified to be in the session' });
         
-//         const updatedNoteData = await updateNote(id, { title, content });
-//         res.status(200).send({ updatedNoteData });
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).send("Internal Server Error");
-//     }
-// });
+    }
+    if (role !==1) {
+        console.log(role)
+        return res.status(403).json({ message: 'Forbidden: Only admins can promote users' });
+    }
 
-// //function delete route
+    const userIdToPromote = req.params.id;  // Get the userId from the URL parameter
 
-// app.delete("/notes/:id", async (req, res)=> {
-//     const {id} = req.params;
-//     try{
-//         const deletedNoteData = await deleteNote(id);
-//         res.status(200).send({deletedNoteData});
+    if (!userIdToPromote) {
+        return res.status(400).json({ message: 'Invalid userId' });  // Make sure the userId is provided
+    }
 
-//     }catch(error){
-//         console.error(error)
-//         res.status(500).send("Internal server error")
-//     }
-// })
+    try {
+        const result = await makeAdmin(userIdToPromote);  // Call the function to promote user to admin
+        return res.status(200).json(result);  // Send success message
+    } catch (error) {
+        console.error('Error promoting user to admin:', error);
+        return res.status(500).json({ message: 'Internal server error' });  // Handle errors
+    }
+});
 
-//error handling
+app.put('/make-user/:id', async (req, res) => {
+    const userId = req.session.userId;  // Get logged-in userId from session
+    const role = req.session.role;  // Get logged-in user role from session
+    const sessionUser = req.session.userId;
+    if (!sessionUser ) {
+        return res.status(403).json({ message: 'user not verified to be in the session' });
+    }
+    
+
+
+    const userIdToDemote = req.params.id;  // Get the userId from the URL parameter
+
+    if (!userIdToDemote) {
+        return res.status(400).json({ message: 'Invalid userId' });  // Make sure the userId is provided
+    }
+
+    try {
+        const result = await makeUser(userIdToDemote);  // Call the function to demote user to regular user
+        console.log("user to demote:", userIdToDemote)
+        console.log("user id in app.js", sessionUser)
+        
+        return res.status(200).json(result);  // Send success message
+    } catch (error) {
+        console.error('Error demoting user to regular:', error);
+        return res.status(500).json({ message: 'Internal server error' });  // Handle errors
+    }
+});
+
+
+
+
+
+
+
+
 
 app.use((err, req, res, next) => {
     console.error(err.stack)

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import './css/TicketPopup.css'; // Import the CSS file
+import './css/AdminTicket.css'
 import {
     Container,
     Typography,
@@ -80,6 +81,8 @@ const AdminTickets = () => {
     const [selectedTicket, setSelectedTicket] = useState(null);
     const [userRole, setUserRole] = useState(null);
     const [popupMessage, setPopupMessage] = useState('');
+    const [determineCloseOrOpen, setDetermineCloseOrOpen] = useState(null);
+
 
     useEffect(() => {
         let isMounted = true; // Track whether the component is mounted
@@ -97,6 +100,18 @@ const AdminTickets = () => {
                 }
             }
         };
+
+        const fetchStatusTicket = async () =>{
+            try{
+                const response = await axios.get('http://localhost:8080/ticket-status',{ withCredentials: true});
+                setDetermineCloseOrOpen(response.data.ticketStatus);
+    
+            }catch (error){
+                console.error("Error Fetching ticket status")
+    
+            }
+        };
+        fetchStatusTicket()
         
         const fetchUserRole = async () => {
             try {
@@ -141,6 +156,25 @@ const AdminTickets = () => {
 
     }
 
+       // const TicketPopup = ({ message }) => {
+            //     const [showPopup, setShowPopup] = useState(false);
+            
+            //     useEffect(() => {
+            //         if (message) {
+            //             setShowPopup(true);
+            //             const timer = setTimeout(() => setShowPopup(true), 6000);
+            //             return () => clearTimeout(timer);
+            //         }
+            //     }, [message]);
+            
+            //     return (
+            //         showPopup && (
+            //             <div className="popup-success">
+            //                 <p>{message}</p>
+            //             </div>
+            //         )
+            //     );
+            // };
     const handleAccept = async (ticketId) => {
         try {
             const response = await fetch(`http://localhost:8080/accept-ticket/${ticketId}`, {
@@ -151,28 +185,10 @@ const AdminTickets = () => {
     
             // Remove the accepted ticket from the list
             // setTickets(prevTickets => prevTickets.filter(ticket => ticket.ticketId !== ticketId));
-            const TicketPopup = ({ message }) => {
-                const [showPopup, setShowPopup] = useState(false);
-            
-                useEffect(() => {
-                    if (message) {
-                        setShowPopup(true);
-                        const timer = setTimeout(() => setShowPopup(true), 6000);
-                        return () => clearTimeout(timer);
-                    }
-                }, [message]);
-            
-                return (
-                    showPopup && (
-                        <div className="popup-success">
-                            <p>{message}</p>
-                        </div>
-                    )
-                );
-            };
+         
             setTickets(prevTickets => 
                 prevTickets.map(ticket => 
-                    ticket.ticketId === ticketId ? { ...ticket, ticketStatus: 1 } : ticket
+                    ticket.ticketId === ticketId ? { ...ticket, ticketStatus: "1" } : ticket
                 )
             );
     
@@ -197,9 +213,10 @@ const AdminTickets = () => {
             // Update the local state with the declined ticket, setting its status to 0
             setTickets(prevTickets => 
                 prevTickets.map(ticket => 
-                    ticket.ticketId === ticketId ? { ...ticket, ticketStatus: 0 } : ticket
+                    ticket.ticketId === ticketId ? { ...ticket, ticketStatus: "0" } : ticket
                 )
             );
+        
     
             handleClose(); // Close the dialog
         } catch (error) {
@@ -237,6 +254,45 @@ const AdminTickets = () => {
             handleClose(); // Close the dialog
         }
     };
+        // Define the color logic based on ticket status
+    // const getStatusColor = (status) => {
+        
+    //     switch (status) {
+    //         case '0':
+    //             return 'red'; // Declined
+    //         case '1':
+    //             return 'green'; // Accepted
+    //         case '2':
+    //             return 'yellow'; // Pending
+    //         default:
+    //             return 'gray'; // Default for unknown statuses
+    //     }
+    // };
+
+    // StatusBadge component to show the status with the respective color
+    // const StatusBadge = ({ status }) => {
+    //     // Map numeric statuses to descriptive text and colors
+    //     determineCloseOrOpen 
+    //     const statusMap = {
+    //         '0': { label: 'Declined', color: 'red' },
+    //         '1': { label: 'Accepted', color: 'green' },
+    //         '2': { label: 'Pending', color: 'yellow' },
+    //     };
+    
+    //     const { label, color } = statusMap[status] || { label: 'Unknown', color: 'gray' };
+    
+    //     return (
+    //         <span style={{
+    //             backgroundColor: color,
+    //             color: 'white',
+    //             padding: '4px 8px',
+    //             borderRadius: '4px',
+    //             fontWeight: 'bold'
+    //         }}>
+    //             {label}
+    //         </span>
+    //     );
+    // };
 
     
 
@@ -316,7 +372,39 @@ const AdminTickets = () => {
                                     </TableRow>
                                     <TableRow>
                                         <DetailTableCell><strong>Status</strong></DetailTableCell>
-                                        <DetailTableCell>{selectedTicket.ticketStatus}</DetailTableCell>
+                                        <DetailTableCell>
+
+                                        {selectedTicket.ticketStatus === "0" && (
+                                            <>
+                                                <span className="status-declined">
+                                                    Declined
+                                                </span>
+                                            </>
+                                        )}
+                                        {selectedTicket.ticketStatus === "1" && (
+                                            <>
+                                                <span className="status-accepted">
+                                                    Accepted
+                                                </span>
+                                            </>
+                                        )}
+                                        {selectedTicket.ticketStatus === "2" && (
+                                            <>
+                                                <span className="status-pending">
+                                                    Pending
+                                                </span>
+                                            </>
+                                        )}
+                                                                                {/* {selectedTicket.ticketStatus === '0' ? 
+                                        'Declined' : selectedTicket.ticketStatus === '1' ? 
+                                        'Accepted' : selectedTicket.ticketStatus === '2' ? 
+                                        'Pending' : 'Unknown'}  */}
+
+                                       
+
+
+                                        
+                                        </DetailTableCell>
                                     </TableRow>
                                     <TableRow>
                                         <DetailTableCell><strong>Service Type</strong></DetailTableCell>
