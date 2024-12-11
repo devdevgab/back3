@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { useUser } from './UserContext';
 import {
   Container,
   TextField,
@@ -16,6 +17,7 @@ const Login = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const navigate = useNavigate();
+  const { setUserFirstName } = useUser();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -27,7 +29,12 @@ const Login = () => {
          Username: username,
          Password: password,
       }, { withCredentials: true }); // Enable session cookies
-   
+
+
+       if (response.data.userFirstName) {
+        setUserFirstName(response.data.userFirstName);  // Set the userFirstName in context
+        console.log('User First Name:', response.data.userFirstName);
+      }
       setSuccess(response.data.message);
       navigate('/home');  // Redirect to Ticketing
    } catch (err) {

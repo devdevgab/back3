@@ -1,3 +1,13 @@
+body {
+  /* background-image: url('./aimlogoo.svg'); This assumes the file is in public/images */
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  min-height: 100vh;
+}
+
+
+
 .App {
   text-align: center;
 }

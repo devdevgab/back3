@@ -1,5 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import Print from './Print';
+import {PDFViewer, pdf} from '@react-pdf/renderer';
+import { useNavigate } from 'react-router-dom';
+import TicketButton from './TicketButton';
+import { PrintPage } from './PrintPage';
 import {
     Container,
     Typography,
@@ -20,6 +25,7 @@ import {
     Button,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
     backgroundColor: theme.palette.primary.main,
@@ -79,10 +85,21 @@ const Home = () => {
     const [selectedTicket, setSelectedTicket] = useState(null);
     const [userRole, setUserRole] = useState(null);
     const [determineCloseOrOpen, setDetermineCloseOrOpen] = useState(null);
+    const [popupMessage, setPopupMessage] = useState('');
+    // const history = useHistory();
+    const navigate = useNavigate();
 
     useEffect(() => {
         let isMounted = true; // Track whether the component is mounted
     
+
+
+        // const handleOpenDialog = (ticket) => {
+        //     setSelectedTicket(ticket);
+        //     setOpen(true); // Open the dialog
+        //   };
+
+
         const fetchTickets = async () => {
             try {
                 const response = await axios.get('http://localhost:8080/tickets', { withCredentials: true });
@@ -147,10 +164,67 @@ const Home = () => {
         setOpen(true);
     };
 
-    const handleClose = () => {
-        setOpen(false);
-        setSelectedTicket(null);
+    const handlePrint = async () => {
+        
+        if (!selectedTicket) {
+            alert("No ticket selected. Please select a ticket first.");
+            return;
+        }
+    
+        try {
+            const ticketId = selectedTicket.ticketId;
+    
+            // Open the new window early, but without content yet
+            const newWindow = window.open('', '_blank');
+            if (!newWindow) {
+                alert("Pop-up blocked! Please allow pop-ups for this site.");
+                return;
+            }
+    
+            // Generate the PDF Blob
+            const blob = await pdf(<Print ticket={selectedTicket} />).toBlob();
+            const url = URL.createObjectURL(blob);
+            console.log("Generated Blob URL:", url);
+            // Write the content into the new window
+            newWindow.document.write(`
+                <html>
+                    <title>Print Ticket</title>
+                    <body style="margin:0">
+                        <iframe src="${url}" frameborder="0" style="width:100%; height:100%;"></iframe>
+                    </body>
+                </html>
+            `);
+            newWindow.document.close();
+        } catch (error) {
+            console.error("Error during print:", error);
+        }
     };
+
+    const handleClose = () => {
+        setSelectedTicket(null);
+        // setSelectedTicket.ticketId(null);
+        setOpen(false);
+       
+        
+    };
+
+    // const handleAccept = async (ticketId) => {
+    //     try {
+    //         const response = await fetch(`http://localhost:8080/accept-ticket/${ticketId}`, {
+    //             method: 'PUT',
+    //             credentials: 'include',
+    //         });
+    //         const updatedTicket = await response.json();
+    
+    //         // Remove the accepted ticket from the list
+    //         setTickets(prevTickets => prevTickets.filter(ticket => ticket.ticketId !== ticketId));
+    
+    //         handleClose();
+    //     } catch (error) {
+    //         console.error('Error accepting ticket:', error);
+    //     }
+    // };
+
 
     const handleAccept = async (ticketId) => {
         try {
@@ -161,13 +235,45 @@ const Home = () => {
             const updatedTicket = await response.json();
     
             // Remove the accepted ticket from the list
-            setTickets(prevTickets => prevTickets.filter(ticket => ticket.ticketId !== ticketId));
+            // setTickets(prevTickets => prevTickets.filter(ticket => ticket.ticketId !== ticketId));
+         
+            setTickets(prevTickets => 
+                prevTickets.map(ticket => 
+                    ticket.ticketId === ticketId ? { ...ticket, ticketStatus: "1" } : ticket
+                )
+            );
     
             handleClose();
         } catch (error) {
             console.error('Error accepting ticket:', error);
         }
     };
+    // const handleDecline = async (ticketId) => {
+    //     try {
+    //         const response = await fetch(`http://localhost:8080/decline-ticket/${ticketId}`, {
+    //             method: 'PUT',
+    //             credentials: 'include',
+    //         });
+            
+    //         if (!response.ok) {
+    //             throw new Error('Failed to decline ticket');
+    //         }
+    
+    //         const updatedTicket = await response.json();
+    
+    //         // Update the local state with the declined ticket, setting its status to 0
+    //         setTickets(prevTickets => 
+    //             prevTickets.map(ticket => 
+    //                 ticket.ticketId === ticketId ? { ...ticket, ticketStatus: 0 } : ticket
+    //             )
+    //         );
+    
+    //         handleClose(); // Close the dialog
+    //     } catch (error) {
+    //         console.error('Error declining ticket:', error);
+    //     }
+    // };
+
     const handleDecline = async (ticketId) => {
         try {
             const response = await fetch(`http://localhost:8080/decline-ticket/${ticketId}`, {
@@ -184,9 +290,10 @@ const Home = () => {
             // Update the local state with the declined ticket, setting its status to 0
             setTickets(prevTickets => 
                 prevTickets.map(ticket => 
-                    ticket.ticketId === ticketId ? { ...ticket, ticketStatus: 0 } : ticket
+                    ticket.ticketId === ticketId ? { ...ticket, ticketStatus: "0" } : ticket
                 )
             );
+        
     
             handleClose(); // Close the dialog
         } catch (error) {
@@ -214,18 +321,156 @@ const Home = () => {
     }; 
     const handleDeclineTicket = async () => {
         if (!selectedTicket) return;
-    
+
         try {
             await handleDecline(selectedTicket.ticketId);
+            // setPopupMessage('Success! Ticket Declined.');
         } catch (error) {
             console.error('Error handling decline:', error);
         } finally {
-            handleClose(); // Close the dialog after attempting to decline
+            handleClose(); // Close the dialog
         }
     };
-
+    
     
 
+
+
+      const handleICTAcceptCloseTicket = async () => {
+        if (!selectedTicket) return;
+    
+        try {
+            const updatedTicket = await handleICTAccept(selectedTicket.ticketId);
+            if (updatedTicket) {
+                setTickets(prevTickets =>
+                    prevTickets.map(ticket =>
+                        ticket.ticketId === updatedTicket.ticketId ? updatedTicket : ticket
+                    )
+                );
+                setPopupMessage('Success! Ticket Accepted.');
+            }
+        } catch (error) {
+            console.error('Error accepting ticket:', error);
+        } finally {
+            handleClose(); // Close the dialog
+        }
+    };
+    
+    
+    const handleICTAccept = async (ticketId) => {
+        try {
+            const response = await fetch(`http://localhost:8080/accept-ticketICT/${ticketId}`, {
+                method: 'PUT',
+                credentials: 'include',
+            });
+            const updatedTicket = await response.json();
+    
+            // Remove the accepted ticket from the list
+            // setTickets(prevTickets => prevTickets.filter(ticket => ticket.ticketId !== ticketId));
+         
+            setTickets(prevTickets => 
+                prevTickets.map(ticket => 
+                    ticket.ticketId === ticketId ? { ...ticket, ticketStatusICT: "1" } : ticket
+                )
+            );
+    
+            handleClose();
+        } catch (error) {
+            console.error('Error accepting ticket:', error);
+        }
+    };
+    
+    
+    
+    ///ICT DECLINE
+    
+    
+    const handleICTDeclineTicket = async () => {
+        if (!selectedTicket) return;
+    
+        try {
+            await handleICTDecline(selectedTicket.ticketId);
+            setPopupMessage('Success! Ticket Declined.');
+        } catch (error) {
+            console.error('Error handling decline:', error);
+        } finally {
+            handleClose(); // Close the dialog
+        }
+    };
+    
+    
+    
+    const handleICTDecline = async (ticketId) => {
+        try {
+            const response = await fetch(`http://localhost:8080/decline-ticketICT/${ticketId}`, {
+                method: 'PUT',
+                credentials: 'include',
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to decline ticket');
+            }
+    
+            const updatedTicket = await response.json();
+    
+            // Update the local state with the declined ticket, setting its status to 0
+            setTickets(prevTickets => 
+                prevTickets.map(ticket => 
+                    ticket.ticketId === ticketId ? { ...ticket, ticketStatusICT: "0" } : ticket
+                )
+            );
+        
+    
+            handleClose(); // Close the dialog
+        } catch (error) {
+            console.error('Error declining ticket:', error);
+        }
+    };
+    // const handlePrintNew = () => {
+    //     if (selectedTicket) {
+    //       const ticketId = selectedTicket.id; // Use selected ticket ID
+    //       window.open(`/print?ticketId=${ticketId}`, '_blank');
+    //     } else {
+    //       alert("Ticket not found");
+    //     }
+    //   };
+    
+    //   if (!selectedTicket) {
+    //     return <p>Ticket not found</p>;
+    //   }
+
+    // const handlePrintNew = () => {
+    //     if (selectedTicket) {
+    //       const ticketId = selectedTicket.id; // Use selected ticket ID
+    //       window.open(`/print?ticketId=${ticketId}`, '_blank');
+    //     } else {
+    //       alert("Ticket not found");
+    //     }
+    //   };
+    
+    //   if (!selectedTicket) {
+    //     return <p>Ticket not found</p>;
+    //   }
+    // const handlePrintClick = () => {
+    //     if (selectedTicket) {
+    //         navigate(`/print/${selectedTicket.ticketId}`); // Navigate to the NewPrint route with the ticket ID
+    //     } else {
+    //         alert("No ticket selected. Please select a ticket first.");
+    //     }
+    // };
+
+    const handlePrintClick = () => {
+        if (selectedTicket) {
+            // Construct the URL manually
+            const url = `/ticket/${selectedTicket.ticketId}`;
+            // Open the URL in a new tab
+            window.open(url, '_blank', 'noopener,noreferrer');
+        } else {
+            alert("No ticket selected. Please select a ticket first.");
+        }
+    };
+    
+    
 
     return (
         <Container component="main" maxWidth="lg">
@@ -234,7 +479,10 @@ const Home = () => {
                     My Tickets
                 </Typography>
                 {error && <Typography color="error">{error}</Typography>}
-                <TableContainer style={{ width: '100%' }}>
+                <TableContainer style={{
+                        width: '100%',
+                       
+                    }}>
                     <Table style={{ width: '100%' }}>
                         <TableHead>
                             <TableRow>
@@ -244,7 +492,9 @@ const Home = () => {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {tickets.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(ticket => (
+                            {tickets.sort((a, b) => new Date(b.created) - new Date(a.created))
+                            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                            .map(ticket => (
                                 <StyledTableRow key={ticket.ticketId} onClick={() => handleRowClick(ticket)}>
                                     <TableCell>{ticket.ticketId}</TableCell>
                                     <TableCell>{ticket.ticketTitle}</TableCell>
@@ -280,7 +530,7 @@ const Home = () => {
                         <TableBody>
                             {selectedTicket && (
                                 <>
-                                    <TableRow>
+                                    <TableRow >
                                         <DetailTableCell><strong>Ticket ID</strong></DetailTableCell>
                                         <DetailTableCell>{selectedTicket.ticketId}</DetailTableCell>
                                     </TableRow>
@@ -296,27 +546,67 @@ const Home = () => {
                                         <DetailTableCell><strong>Status</strong></DetailTableCell>
                                         <DetailTableCell>
 
-                                        {selectedTicket.ticketStatus === "0" && (
-                                            <>
+                                        {selectedTicket.ticketStatusICT === "0" && (
+                                            <div style={{ marginBottom: '8px' }}> {/* Adjust the margin as needed */}
                                                 <span className="status-declined">
-                                                    Declined
+                                                    ICT Declined
                                                 </span>
-                                            </>
+                                            </div>
                                         )}
-                                        {selectedTicket.ticketStatus === "1" && (
-                                            <>
+                                        {selectedTicket.ticketStatusICT === "1" && (
+                                            <div style={{ marginBottom: '8px' }}> {/* Adjust the margin as needed */}
                                                 <span className="status-accepted">
-                                                    Accepted
+                                                    ICT Accepted
                                                 </span>
-                                            </>
+                                            </div>
                                         )}
-                                        {selectedTicket.ticketStatus === "2" && (
-                                            <>
+                                        {selectedTicket.ticketStatusICT === "2" &&( 
+                                            <div style={{ marginBottom: '8px' }}> {/* Adjust the margin as needed */}
                                                 <span className="status-pending">
-                                                    Pending
+                                                    ICT Pending
                                                 </span>
-                                            </>
+                                            </div>
                                         )}
+
+                                        {selectedTicket.ticketStatus === "0" && (
+                                          <div style={{ marginBottom: '8px' }}> {/* Adjust the margin as needed */}
+                                                <span className="status-declined">
+                                                    Branch Manager Declined
+                                                </span>
+                                            </div>
+                                        )}
+
+                                        {selectedTicket.ticketStatus === "1" && (
+                                            <div style={{ marginBottom: '8px' }}> {/* Adjust the margin as needed */}
+                                                <span className="status-accepted">
+                                                    Branch Manager Accepted
+                                                </span>
+                                            </div>
+                                        )}
+                                        {selectedTicket.ticketStatus === "2" &&(
+                                           <div style={{ marginBottom: '8px' }}> {/* Adjust the margin as needed */}
+                                                <span className="status-pending">
+                                                    Branch Manager Pending
+                                                </span>
+                                            </div>
+                                        )}
+                                         {selectedTicket.ticketStatus === "" &&(
+                                            <div style={{ marginBottom: '8px' }}> {/* Adjust the margin as needed */}
+                                                <span className="status-pending">
+                                                    Branch Manager Pending
+                                                </span>
+                                            </div>
+                                        )}
+                                         {selectedTicket.ticketStatusICT === "" &&(
+                                            <div style={{ marginBottom: '8px' }}> {/* Adjust the margin as needed */}
+                                                <span className="status-pending">
+                                                    ICT Pending
+                                                </span>
+                                            </div>
+                                        )}
+
+
+
                                                                                 {/* {selectedTicket.ticketStatus === '0' ? 
                                         'Declined' : selectedTicket.ticketStatus === '1' ? 
                                         'Accepted' : selectedTicket.ticketStatus === '2' ? 
@@ -355,10 +645,12 @@ const Home = () => {
                     </Table>
                 </DialogContent>
                 <DialogActions>
-                    {userRole === 1 && ( // Check if the user role is admin
+                    {userRole === 2 && ( // Check if the user role is ICT
                         <>
-                            <Button onClick={handleAcceptCloseTicket} color="primary" variant="contained">Accept Ticket</Button>
-                            <Button onClick={handleDeclineTicket} color="secondary" variant="contained">Decline Ticket</Button>
+                            <Button onClick={handleICTAcceptCloseTicket} color="primary" variant="contained">ICT Accept Ticket</Button>
+                            <Button onClick={handleICTDeclineTicket} color="secondary" variant="contained">ICT Decline Ticket</Button>
+                            <Button color="inherit" onClick={handlePrintClick}>Print</Button>
+                            {/* <TicketButton ticketId={selectedTicket.ticketId} />  */}
                         </>
                     )}
                     <Button onClick={handleClose} color="default">Close</Button>

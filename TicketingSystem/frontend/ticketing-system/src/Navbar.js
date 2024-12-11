@@ -3,6 +3,8 @@ import axios from 'axios';
 import { AppBar, Toolbar, Typography, Button, Box, Dialog, DialogContent, DialogActions } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { checkLoginStatus } from './api'; // Import from api.js
+import Print from './Print';
+import {PDFViwer, pdf} from '@react-pdf/renderer';
 const Navbar = () => {
   const navigate = useNavigate();
   const [loginPrompt, setLoginPrompt] = useState(false);
@@ -18,6 +20,21 @@ const Navbar = () => {
       setLoginPrompt(true); // Show login prompt if not logged in
     }
   };
+  
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   const handleLoginRedirect = () => {
     setLoginPrompt(false); // Close the prompt
@@ -38,6 +55,7 @@ const Navbar = () => {
         console.error("Error logging out:", error);
     }
 };
+
   const fetchUserRole = async () => {
     try {
         const response = await axios.get('http://localhost:8080/check-role', { withCredentials: true });
@@ -57,18 +75,42 @@ fetchUserRole();
             Ticketing System
           </Typography>
           <Box>
-            <Button color="inherit" onClick={() => handleNavigation('/home')}>Home</Button>
+            
             {/* Conditional rendering based on isAdmin state */}
-            {userRole === 1 ? (
+            {
+            userRole === 1 ? (
               <>
+                <Button color="inherit" onClick={() => handleNavigation('/home')}>Home</Button>
                 <Button color="inherit" onClick={() => handleNavigation('/ticketing')}>Create Ticket</Button>
-                <Button color="inherit" onClick={() => handleNavigation('/admin/dashboard')}>Admin Dashboard</Button>
+                {/* <Button color="inherit" onClick={() => handleNavigation('/admin/dashboard')}>Admin Dashboard</Button> */}
                 <Button color="inherit" onClick={() => handleNavigation('/admin/tickets')}>All Tickets</Button>
+                <Button color="inherit" onClick={handleLogout}>Logout</Button>
+                {/* <Button color="inherit" onClick={handlePrint}>Print</Button> */}
               </>
-            ) : (
+            ) :
+            userRole === 2 ?(
+              <>
+               <Button color="inherit" onClick={() => handleNavigation('/home')}>Home</Button>
+               <Button color="inherit" onClick={() => handleNavigation('/ticketing')}>Create Ticket</Button>
+               <Button color="inherit" onClick={() => handleNavigation('/admin/dashboard')}>ICT Dashboard</Button>
+               <Button color="inherit" onClick={() => handleNavigation('/admin/tickets')}>All Tickets</Button>
+               <Button color="inherit" onClick={() => handleNavigation('/ticket/:id')}>Print</Button>
+               <Button color="inherit" onClick={handleLogout}>Logout</Button>
+               
+              </>
+
+            ):  
+            userRole === 0 &&
+            ( <>
+              <Button color="inherit" onClick={() => handleNavigation('/home')}>Home</Button>
               <Button color="inherit" onClick={() => handleNavigation('/ticketing')}>Create Ticket</Button>
-            )}
-            <Button color="inherit" onClick={handleLogout}>Logout</Button>
+              <Button color="inherit" onClick={handleLogout}>Logout</Button>
+              {/* <Button color="inherit" onClick={handlePrint}>Print</Button>                                          */}
+              </>
+            )
+           
+            }
+            
           </Box>
         </Toolbar>
       </AppBar>

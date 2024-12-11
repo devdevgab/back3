@@ -102,7 +102,7 @@ export async function login(username, password) {
 }
 
 
-export async function createTicket(userId, TicketTitle, TicketDesc, TicketServiceType, TicketServiceFor, TicketStatus, NumOfComputers, NumOfUsers, TicketDeleteStatus) {
+export async function createTicket(userId,TicketDepartment, TicketTitle,  TicketRequestedBy, TicketDesc, TicketServiceType, TicketServiceFor, TicketStatus, NumOfComputers, NumOfUsers, TicketDeleteStatus) {
     
 
     if (NumOfComputers == "" ) {
@@ -120,9 +120,9 @@ export async function createTicket(userId, TicketTitle, TicketDesc, TicketServic
     TicketStatus == 0;
     // TicketDeleteStatus == 0;
     const [result] = await pool.query(
-        `INSERT INTO tbl_tickets (userId, ticketTitle, ticketDesc, ticketServiceType, ticketServiceFor, ticketStatus, ticketNumberOfComp, ticketNumberOfUsers, ticketDeleteStatus)
-        VALUES (?, ?, ?, ?, ?, ?,?,?,?)`,
-        [userId, TicketTitle, TicketDesc, TicketServiceType, TicketServiceFor, TicketStatus, NumOfComputers, NumOfUsers, TicketDeleteStatus]
+        `INSERT INTO tbl_tickets (userId, ticketDepartment, ticketTitle, ticketRequestedBy,  ticketDesc, ticketServiceType, ticketServiceFor, ticketStatus,  ticketNumberOfComp, ticketNumberOfUsers, ticketDeleteStatus)
+        VALUES (?, ?, ?, ?, ?, ?,?,?,?,?,?)`,
+        [userId, TicketDepartment, TicketTitle, TicketRequestedBy,  TicketDesc, TicketServiceType, TicketServiceFor, TicketStatus,  NumOfComputers, NumOfUsers, TicketDeleteStatus]
     );
     const id = result.insertId;
     return getTicket(id);
@@ -182,7 +182,7 @@ export async function deleteTicket(id, {TicketDeleteStatus }) {
 
 
 export async function getUserTickets(userId){
-    const query = `SELECT * FROM tbl_tickets WHERE ticketStatus =0 OR ticketStatus=0  AND userId = ?`; // Adjust the table and column names as needed
+    const query = `SELECT * FROM tbl_tickets WHERE ticketStatus =0 OR ticketStatus=0 OR ticketStatusICT=0  AND userId = ?`; // Adjust the table and column names as needed
     const [tickets] = await pool.execute(query, [userId]);
     return tickets;
   };
@@ -208,10 +208,6 @@ export async function acceptTicket(id) {
     const ticketResoDate = new Date(); // Current date and time for resolution date
 
 
-
-
-
-
     try {
         const [result] = await pool.query(
             'UPDATE tbl_tickets SET ticketStatus = ?, ticketResoDate = ? WHERE ticketId = ?',
@@ -228,6 +224,44 @@ export async function acceptTicket(id) {
         throw error; // Handle error appropriately
     }
 }
+
+
+
+export async function acceptTicketICT(id) {
+    const ticketStatusICT = 1; // Accepted
+    const ticketResoDate = new Date(); // Current date and time for resolution date
+
+
+    try {
+        const [result] = await pool.query(
+            'UPDATE tbl_tickets SET ticketStatusICT = ?, ticketResoDate = ? WHERE ticketId = ?',
+            [ticketStatusICT, ticketResoDate, id]
+        );
+
+        if (result.affectedRows > 0) {
+            const updatedTicket = await getTicket(id); // Fetch the updated ticket
+            return updatedTicket;
+        } else {
+            return null; // Ticket not found or not updated
+        }
+    } catch (error) {
+        throw error; // Handle error appropriately
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // Function to decline a ticket
 export async function declineTicket(id) {
@@ -250,6 +284,56 @@ export async function declineTicket(id) {
         throw error; // Handle error appropriately
     }
 }
+
+
+export async function declineTicketICT(id) {
+    const ticketStatusICT = 0; // Not accepted
+    const ticketResoDate = new Date(); // No resolution date for declined tickets
+
+    try {
+        const [result] = await pool.query(
+            'UPDATE tbl_tickets SET ticketStatusICT = ?, ticketResoDate = ? WHERE ticketId = ?',
+            [ticketStatusICT, ticketResoDate, id]
+        );
+
+        if (result.affectedRows > 0) {
+            const updatedTicket = await getTicket(id);
+            return updatedTicket;
+        } else {
+            return null; // Ticket not found or not updated
+        }
+    } catch (error) {
+        throw error; // Handle error appropriately
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 export async function checkLoginStatus() {
     try {
