@@ -32,7 +32,7 @@ const NewPrint = () => {
     form: {
       fontFamily: "Arial, sans-serif",
       padding: "20px",
-      border: "1px solid #ccc",
+      // border: "1px solid #ccc",
       width: "800px",
       margin: "auto",
     },
@@ -277,7 +277,7 @@ const NewPrint = () => {
                 <p>{"function pending" || "N/A"}</p>
               </td>
               <td style={styles.signatureCell}>
-                <p>FAITH T. MASANGKAY, RN, MBA</p>
+                <p>FAITH T. MASANEGRA, RN, MBA</p>
                 <p>CHIEF EXECUTIVE OFFICER</p>
               </td>
             </tr>

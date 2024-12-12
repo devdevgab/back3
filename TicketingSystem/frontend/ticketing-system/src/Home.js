@@ -5,6 +5,9 @@ import {PDFViewer, pdf} from '@react-pdf/renderer';
 import { useNavigate } from 'react-router-dom';
 import TicketButton from './TicketButton';
 import { PrintPage } from './PrintPage';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+// import MuiAlert from '@mui/material/Alert';
 import {
     Container,
     Typography,
@@ -20,12 +23,20 @@ import {
     Dialog,
     DialogContent,
     DialogActions,
+    DialogTitle, 
+    DialogContentText, 
     IconButton,
     Box,
     Button,
+   
+    // Snackbar,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 
+
+// const Alert = React.forwardRef(function Alert(props, ref) {
+//     return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+//   });
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
     backgroundColor: theme.palette.primary.main,
@@ -82,10 +93,12 @@ const Home = () => {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(5);
     const [open, setOpen] = useState(false);
+    const [openPop, setOpenPop] = useState(false);
     const [selectedTicket, setSelectedTicket] = useState(null);
     const [userRole, setUserRole] = useState(null);
     const [determineCloseOrOpen, setDetermineCloseOrOpen] = useState(null);
     const [popupMessage, setPopupMessage] = useState('');
+    const [alertMessage, setAlertMessage] = useState('');
     // const history = useHistory();
     const navigate = useNavigate();
 
@@ -207,7 +220,13 @@ const Home = () => {
        
         
     };
-
+    const handlePopClose = () => {
+        setOpenPop(false);
+    }
+    const handlePopOpen = () => {
+        setOpenPop(true);
+    }
+    // const [openPop, setOpenPop] = useState(false);
     // const handleAccept = async (ticketId) => {
     //     try {
     //         const response = await fetch(`http://localhost:8080/accept-ticket/${ticketId}`, {
@@ -336,7 +355,7 @@ const Home = () => {
 
 
 
-      const handleICTAcceptCloseTicket = async () => {
+      const  handleICTAcceptCloseTicket = async () => {
         if (!selectedTicket) return;
     
         try {
@@ -463,8 +482,21 @@ const Home = () => {
         if (selectedTicket) {
             // Construct the URL manually
             const url = `/ticket/${selectedTicket.ticketId}`;
+            if (selectedTicket.ticketStatus !== '1' || selectedTicket.ticketStatusICT !== '1') {
+                setOpenPop(true);
+                setAlertMessage('Tickets are needed to be approved before printing');
+    
+                  
+                  console.log("running here");
+                
+
+            }else{
+                // console.log("yep sakto ko 2 ", selectedTicket.ticketStatus, selectedTicket.ticketStatusICT)
+                window.open(url, '_blank', 'noopener,noreferrer');
+                
+            }
             // Open the URL in a new tab
-            window.open(url, '_blank', 'noopener,noreferrer');
+            
         } else {
             alert("No ticket selected. Please select a ticket first.");
         }
@@ -473,6 +505,9 @@ const Home = () => {
     
 
     return (
+        
+
+
         <Container component="main" maxWidth="lg">
             <Paper elevation={6} style={{ padding: '16px', marginTop: '32px' }}>
                 <Typography variant="h5" gutterBottom>
@@ -520,6 +555,7 @@ const Home = () => {
                 <DialogHeader>
                     <Typography variant="h6">
                         Ticket Details
+                        {/* {error && <Typography color="white">{error}</Typography>} */}
                     </Typography>
                     <IconButton onClick={handleClose}>
                         <CloseIcon style={{ color: '#fff' }} />
@@ -650,6 +686,19 @@ const Home = () => {
                             <Button onClick={handleICTAcceptCloseTicket} color="primary" variant="contained">ICT Accept Ticket</Button>
                             <Button onClick={handleICTDeclineTicket} color="secondary" variant="contained">ICT Decline Ticket</Button>
                             <Button color="inherit" onClick={handlePrintClick}>Print</Button>
+                            {openPop && (
+                                <Dialog open={true} onClose={handlePopClose}>
+                                    <DialogTitle>Error</DialogTitle>
+                                    <DialogContent>
+                                    <DialogContentText>{alertMessage}</DialogContentText>
+                                    </DialogContent>
+                                    <DialogActions>
+                                    <Button onClick={handlePopClose} color="primary">
+                                        OK
+                                    </Button>
+                                    </DialogActions>
+                                </Dialog>
+                                )}
                             {/* <TicketButton ticketId={selectedTicket.ticketId} />  */}
                         </>
                     )}

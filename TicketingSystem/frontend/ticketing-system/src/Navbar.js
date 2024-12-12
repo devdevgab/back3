@@ -67,11 +67,20 @@ const Navbar = () => {
 
 fetchUserRole();
 
+
+
+const styles ={
+  navTitle: {
+    display:"flex",
+    justifyContent:"flex-start",
+    flexGrow: 1
+  }
+};
   return (
     <>
       <AppBar position="static">
         <Toolbar>
-          <Typography variant="h6" style={{ flexGrow: 1 }}>
+          <Typography variant="h6" style={styles.navTitle}>
             Ticketing System
           </Typography>
           <Box>

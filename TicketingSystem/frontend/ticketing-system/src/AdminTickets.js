@@ -19,9 +19,12 @@ import {
     Dialog,
     DialogContent,
     DialogActions,
+    DialogTitle, 
+    DialogContentText,
     IconButton,
     Box,
     Button,
+     
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 
@@ -84,6 +87,8 @@ const AdminTickets = () => {
     const [userRole, setUserRole] = useState(null);
     const [popupMessage, setPopupMessage] = useState('');
     const [determineCloseOrOpen, setDetermineCloseOrOpen] = useState(null);
+    const [openPop, setOpenPop] = useState(false);
+    const [alertMessage, setAlertMessage] = useState('');
 
 
     useEffect(() => {
@@ -135,6 +140,14 @@ const AdminTickets = () => {
     //     tickets.forEach(ticket => console.log(ticket.ticketId)); // Log ticket IDs when tickets change
     // }, [tickets]);
 
+
+
+    const handlePopClose = () => {
+        setOpenPop(false);
+    }
+    const handlePopOpen = () => {
+        setOpenPop(true);
+    }
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
     };
@@ -468,8 +481,22 @@ const handleICTDecline = async (ticketId) => {
         if (selectedTicket) {
             // Construct the URL manually
             const url = `/ticket/${selectedTicket.ticketId}`;
+
+            if (selectedTicket.ticketStatus != '1' || selectedTicket.ticketStatusICT != '1') {
+                setOpenPop(true);
+                setAlertMessage('Tickets are needed to be approved before printing');
+    
+                  
+                  console.log("running here");
+                
+
+            }else{
+                // console.log("yep sakto ko 2 ", selectedTicket.ticketStatus, selectedTicket.ticketStatusICT)
+                window.open(url, '_blank', 'noopener,noreferrer');
+                
+            }
             // Open the URL in a new tab
-            window.open(url, '_blank', 'noopener,noreferrer');
+            // window.open(url, '_blank', 'noopener,noreferrer');
         } else {
             alert("No ticket selected. Please select a ticket first.");
         }
@@ -673,6 +700,23 @@ const handleICTDecline = async (ticketId) => {
                         <>
                         <Button onClick={handleICTAcceptCloseTicket} color="primary" variant="contained">ICT Accept Ticket</Button>
                         <Button onClick={handleICTDeclineTicket} color="secondary" variant="contained">ICT Decline Ticket</Button>
+
+                        {openPop && (
+                                <Dialog open={true} onClose={handlePopClose}>
+                                    <DialogTitle>Error</DialogTitle>
+                                    <DialogContent>
+                                    <DialogContentText>{alertMessage}</DialogContentText>
+                                    </DialogContent>
+                                    <DialogActions>
+                                    <Button onClick={handlePopClose} color="primary">
+                                        OK
+                                    </Button>
+                                    </DialogActions>
+                                </Dialog>
+                                )}
+
+
+
                         </>
 
                     )
@@ -681,6 +725,7 @@ const handleICTDecline = async (ticketId) => {
                     }
                     {userRole === 2 && (
                         <Button color="Green" onClick={handlePrintClick} variant="contained">Print</Button>
+                        
                     )}
                     <Button onClick={handleClose} color="default">Close</Button>
                 </DialogActions>
