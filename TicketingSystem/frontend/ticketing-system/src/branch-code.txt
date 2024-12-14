@@ -1,0 +1,233 @@
+	
+001	Main Office	
+002	Kapatagan	
+	Maranding	
+003	Molave	
+004	PBO-Amoroso
+	C3	
+005	Tukuran	
+006	Tubod	
+	Baroy	
+007	Midsalip	
+008	Dumingag	
+009	Margos	
+010	Maigo	
+	Kauswagan	
+	Bacolod	
+011	Ozamis	
+012	Zamboanga Divisoria
+	Viterans	
+	Gusu	
+013	Titay	
+014	Ipil	
+015	Imelda	
+016	Kabasalan	
+017	Iligan	
+	Linamon	
+	Mahayahay	
+	Tibanga	
+	Funeral	
+018	Buug	
+019	Cebu	
+020	Oroquita	
+021	Diplahan	
+022	Calamba	
+023	Tangub	
+024	Makati	
+025	Dipolog	
+	Manukan	
+	Katipunan
+    Polanco	
+026	Jimenez	
+027	Mandaue	
+028	Toledo	
+029	Initao	
+030	Dapitan	
+031	Siay	
+032	Mahayag	
+033	Cagayan Lapasan
+	Mabini	
+    uerto
+034	Tudela	
+035	Lugait	
+036	Alubijid	
+037	Dumaguete	
+038	Lapu-Lapu	
+039	Manticao	
+040	Bogo	
+041	Minglanilla	
+042	Gma	
+043	Sindangan	
+044	Liloy	
+	Tampilisan	
+045	Bonifacio	
+046	Dumalinao	
+047	Pinamungajan	
+048	Talamban	
+049	Baras	
+	Mabitac	
+050	Carmen	
+051	Laguindingan	
+052	Imus	
+053	Bayog	
+054	Alfonso	
+055	Dalaguete	
+056	Balamban	
+057	Liloan	
+058	Pitogo	
+059	Valencia	
+060	RM	
+061	Tabina	
+062	Sominot	
+063	San Miguil	
+064	Josefina	
+065	Sergio Osmeña	
+066	Impasugong	
+067	Maramag
+951 Clinic/MHSD
+952 Food Center
+953 Funeral
+954 Rice MILL
+955 Copra
+956 Casa-Motorpool
+957 FM
+958 Casket (CA,PP,RU,MISC,STS)
+959 Iligan Funeral
+960 Chapel
+997 Allied
+998       
+999      
+000 Central
+
+
+
+CREATE TABLE tbl_branches (
+    branchCodeDB_ID INT PRIMARY KEY AUTO_INCREMENT, -- Auto-incremented primary key
+    branchCode VARCHAR(10),
+    branchName VARCHAR(100), 
+    branchTypeID VARCHAR(10), 
+    branchIsland VARCHAR(20)
+);
+
+
+INSERT INTO tbl_branches (branchCodeDB_ID, branchCode, branchName, branchTypeID, branchIsland) VALUES 
+(951, '951', 'Clinic/MHSD', NULL, 'Mindanao'),
+(952, '952', 'Food Center', NULL, 'Mindanao'),
+(953, '953', 'Funeral', NULL, 'Mindanao'),
+(954, '954', 'Rice MILL', NULL, 'Mindanao'),
+(955, '955', 'Copra', NULL, 'Mindanao'),
+(956, '956', 'Casa-Motorpool', NULL, 'Mindanao'),
+(957, '957', 'FM', NULL, 'Mindanao'),
+(958, '958', 'Casket (CA,PP,RU,MISC,STS)', NULL, 'Mindanao'),
+(959, '959', 'Iligan Funeral', NULL, 'Mindanao'),
+(960, '960', 'Chapel', NULL, 'Mindanao'),
+(997, '997', 'Allied', NULL, 'Mindanao'),
+(998, '998', NULL, NULL, 'Mindanao'),
+(999, '999', NULL, NULL, 'Mindanao'),
+(000, '000', 'Central', NULL, 'Mindanao');
+
+
+
+INSERT INTO tbl_branches (branchCode, branchName, branchTypeID, branchIsland) VALUES
+('001', 'Main Office', NULL, 'Mindanao'),
+('002', 'Kapatagan', NULL, 'Mindanao'),
+(NULL, 'Maranding', NULL, 'Mindanao'),
+('003', 'Molave', NULL, 'Mindanao'),
+('004', 'PBO-Amoroso', NULL, 'Mindanao'),
+(NULL, 'C3', NULL, 'Mindanao'),
+('005', 'Tukuran', NULL, 'Mindanao'),
+('006', 'Tubod', NULL, 'Mindanao'),
+(NULL, 'Baroy', NULL, 'Mindanao'),
+('007', 'Midsalip', NULL, 'Mindanao'),
+('008', 'Dumingag', NULL, 'Mindanao'),
+('009', 'Margos', NULL, 'Mindanao'),
+('010', 'Maigo', NULL, 'Mindanao'),
+(NULL, 'Kauswagan', NULL, 'Mindanao'),
+(NULL, 'Bacolod', NULL, 'Mindanao'),
+('011', 'Ozamis', NULL, 'Mindanao'),
+('012', 'Zamboanga Divisoria', NULL, 'Mindanao'),
+(NULL, 'Viterans', NULL, 'Mindanao'),
+(NULL, 'Gusu', NULL, 'Mindanao'),
+('013', 'Titay', NULL, 'Mindanao'),
+('014', 'Ipil', NULL, 'Mindanao'),
+('015', 'Imelda', NULL, 'Mindanao'),
+('016', 'Kabasalan', NULL, 'Mindanao'),
+('017', 'Iligan', NULL, 'Mindanao'),
+(NULL, 'Linamon', NULL, 'Mindanao'),
+(NULL, 'Mahayahay', NULL, 'Mindanao'),
+(NULL, 'Tibanga', NULL, 'Mindanao'),
+(NULL, 'Funeral', NULL, 'Mindanao'),
+('018', 'Buug', NULL, 'Mindanao'),
+('019', 'Cebu', NULL, 'Visayas'),
+('020', 'Oroquita', NULL, 'Mindanao'),
+('021', 'Diplahan', NULL, 'Mindanao'),
+('022', 'Calamba', NULL, 'Mindanao'),
+('023', 'Tangub', NULL, 'Mindanao'),
+('024', 'Makati', NULL, 'Luzon'),
+('025', 'Dipolog', NULL, 'Mindanao'),
+(NULL, 'Manukan', NULL, 'Mindanao'),
+(NULL, 'Katipunan', NULL, 'Mindanao'),
+(NULL, 'Polanco', NULL, 'Mindanao'),
+('026', 'Jimenez', NULL, 'Mindanao'),
+('027', 'Mandaue', NULL, 'Visayas'),
+('028', 'Toledo', NULL, 'Visayas'),
+('029', 'Initao', NULL, 'Mindanao'),
+('030', 'Dapitan', NULL, 'Mindanao'),
+('031', 'Siay', NULL, 'Mindanao'),
+('032', 'Mahayag', NULL, 'Mindanao'),
+('033', 'Cagayan Lapasan', NULL, 'Mindanao'),
+(NULL, 'Mabini', NULL, 'Mindanao'),
+(NULL, 'Puerto', NULL, 'Mindanao'),
+('034', 'Tudela', NULL, 'Mindanao'),
+('035', 'Lugait', NULL, 'Mindanao'),
+('036', 'Alubijid', NULL, 'Mindanao'),
+('037', 'Dumaguete', NULL, 'Visayas'),
+('038', 'Lapu-Lapu', NULL, 'Visayas'),
+('039', 'Manticao', NULL, 'Mindanao'),
+('040', 'Bogo', NULL, 'Visayas'),
+('041', 'Minglanilla', NULL, 'Visayas'),
+('042', 'Gma', NULL, 'Mindanao'),
+('043', 'Sindangan', NULL, 'Mindanao'),
+('044', 'Liloy', NULL, 'Mindanao'),
+(NULL, 'Tampilisan', NULL, 'Mindanao'),
+('045', 'Bonifacio', NULL, 'Mindanao'),
+('046', 'Dumalinao', NULL, 'Mindanao'),
+('047', 'Pinamungajan', NULL, 'Visayas'),
+('048', 'Talamban', NULL, 'Visayas'),
+('049', 'Baras', NULL, 'Mindanao'),
+(NULL, 'Mabitac', NULL, 'Mindanao'),
+('050', 'Carmen', NULL, 'Mindanao'),
+('051', 'Laguindingan', NULL, 'Mindanao'),
+('052', 'Imus', NULL, 'Luzon'),
+('053', 'Bayog', NULL, 'Mindanao');
+
+
+INSERT INTO tbl_branches (branchCode, branchName, branchTypeID, branchIsland) VALUES
+('054', 'Alfonso', NULL, 'Luzon'),
+('055', 'Dalaguete', NULL, 'Visayas'),
+('056', 'Balamban', NULL, 'Visayas'),
+('057', 'Liloan', NULL, 'Visayas'),
+('058', 'Pitogo', NULL, 'Mindanao'),
+('059', 'Valencia', NULL, 'Mindanao'),
+('060', 'RM', NULL, 'Mindanao'),
+('061', 'Tabina', NULL, 'Mindanao'),
+('062', 'Sominot', NULL, 'Mindanao'),
+('063', 'San Miguil', NULL, 'Mindanao'),
+('064', 'Josefina', NULL, 'Mindanao'),
+('065', 'Sergio Osmeña', NULL, 'Mindanao'),
+('066', 'Impasugong', NULL, 'Mindanao'),
+('067', 'Maramag', NULL, 'Mindanao'),
+('951', 'Clinic/MHSD', NULL, 'Mindanao'),
+('952', 'Food Center', NULL, 'Mindanao'),
+('953', 'Funeral', NULL, 'Mindanao'),
+('954', 'Rice MILL', NULL, 'Mindanao'),
+('955', 'Copra', NULL, 'Mindanao'),
+('956', 'Casa-Motorpool', NULL, 'Mindanao'),
+('957', 'FM', NULL, 'Mindanao'),
+('958', 'Casket (CA,PP,RU,MISC,STS)', NULL, 'Mindanao'),
+('959', 'Iligan Funeral', NULL, 'Mindanao'),
+('960', 'Chapel', NULL, 'Mindanao'),
+('997', 'Allied', NULL, 'Mindanao'),
+('998', NULL, NULL, 'Mindanao'),
+('999', NULL, NULL, 'Mindanao'),
+('000', 'Central', NULL, 'Mindanao');

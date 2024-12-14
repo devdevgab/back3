@@ -190,7 +190,7 @@ const NewPrint = () => {
           <tbody>
             <tr>
               <td style={styles.label}>DEPARTMENT / BRANCH:</td>
-              <td style={styles.value}>{selectedTicket.ticketTitle || "N/A"}</td>
+              <td style={styles.value}>{selectedTicket.branchCode +" - "+selectedTicket.ticketTitle || "N/A"}</td>
               <td style={styles.label}>DATE REQUESTED:</td>
               <td style={styles.value}>{selectedTicket.created || "N/A"}</td>
             </tr>

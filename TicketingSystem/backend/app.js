@@ -1,5 +1,5 @@
 import express from 'express'
-import {getUsers,getTicket,makeAdmin,makeUser,declineTicketICT,acceptTicketICT, getAllTickets,createUser,login, createTicket,updateTicket,deleteTicket, getUserTickets, getAdminTickets, acceptTicket, declineTicket, checkLoginStatus, checkUserRole, getUser} from './database.js'
+import {getUsers,getTicket,makeAdmin,makeUser,declineTicketICT,acceptTicketICT, fetchBranches,getAllTickets,createUser,login, createTicket,updateTicket,deleteTicket, getUserTickets, getAdminTickets, acceptTicket, declineTicket, checkLoginStatus, checkUserRole, getUser} from './database.js'
 import bodyParser from 'body-parser'
 import session from 'express-session';
 import cors from 'cors';
@@ -181,7 +181,19 @@ app.post("/create", async (req, res)=>{
 
 // axios.post('/create-ticket', data, { withCredentials: true }); // Axios example
 app.post('/create-ticket', async (req, res) => {
-    const { TicketTitle, TicketDesc,TicketDepartment, TicketServiceType, TicketServiceFor, TicketRequestedBy, TicketStatus, NumOfComputers, NumOfUsers, TicketDeleteStatus } = req.body;
+    const { 
+        TicketTitle, 
+        TicketDesc, 
+        BranchCode, 
+        TicketDepartment, 
+        TicketServiceType, 
+        TicketServiceFor, 
+        TicketRequestedBy, 
+        TicketStatus = '1',  // Default status if not provided
+        NumOfComputers = '0', 
+        NumOfUsers = '0', 
+        TicketDeleteStatus = '0' 
+    } = req.body;
     const userId = req.session.userId; // Get userId from session
     const userFirstName = req.session.userFirstName;
     const userLastName = req.session.userLastName;
@@ -195,7 +207,7 @@ app.post('/create-ticket', async (req, res) => {
     try {
         console.log('Ticket Login user:', userId);
         console.log('User IDDD stored in session:', req.session.userId);
-      const ticket = await createTicket(userId, TicketDepartment, TicketTitle, TicketRequestedBy, TicketDesc, TicketServiceType, TicketServiceFor, TicketStatus, NumOfComputers, NumOfUsers, TicketDeleteStatus);
+      const ticket = await createTicket(userId, TicketDepartment, BranchCode, TicketTitle, TicketRequestedBy, TicketDesc, TicketServiceType, TicketServiceFor, TicketStatus, NumOfComputers, NumOfUsers, TicketDeleteStatus);
       res.status(201).json({ message: 'Ticket created successfully', ticket });
     } catch (error) {
       console.error('Error creating ticket:', error);
@@ -599,7 +611,16 @@ app.put('/make-user/:id', async (req, res) => {
     }
 });
 
-
+app.get('/get-branches', async (req, res) => {
+    try {
+      const branches = await fetchBranches();
+      
+      res.status(200).json(branches);
+    } catch (err) {
+      console.error('Error fetching branches:', err);
+      res.status(500).json({ message: 'Error fetching branches.' });
+    }
+  });
 
 
 

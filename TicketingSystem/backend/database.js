@@ -102,7 +102,7 @@ export async function login(username, password) {
 }
 
 
-export async function createTicket(userId,TicketDepartment, TicketTitle,  TicketRequestedBy, TicketDesc, TicketServiceType, TicketServiceFor, TicketStatus, NumOfComputers, NumOfUsers, TicketDeleteStatus) {
+export async function createTicket(userId,TicketDepartment, BranchCode, TicketTitle,  TicketRequestedBy, TicketDesc, TicketServiceType, TicketServiceFor, TicketStatus, NumOfComputers, NumOfUsers, TicketDeleteStatus) {
     
 
     if (NumOfComputers == "" ) {
@@ -120,9 +120,9 @@ export async function createTicket(userId,TicketDepartment, TicketTitle,  Ticket
     TicketStatus == 0;
     // TicketDeleteStatus == 0;
     const [result] = await pool.query(
-        `INSERT INTO tbl_tickets (userId, ticketDepartment, ticketTitle, ticketRequestedBy,  ticketDesc, ticketServiceType, ticketServiceFor, ticketStatus,  ticketNumberOfComp, ticketNumberOfUsers, ticketDeleteStatus)
-        VALUES (?, ?, ?, ?, ?, ?,?,?,?,?,?)`,
-        [userId, TicketDepartment, TicketTitle, TicketRequestedBy,  TicketDesc, TicketServiceType, TicketServiceFor, TicketStatus,  NumOfComputers, NumOfUsers, TicketDeleteStatus]
+        `INSERT INTO tbl_tickets (userId, ticketDepartment, branchCode, ticketTitle, ticketRequestedBy, ticketDesc, ticketServiceType, ticketServiceFor, ticketStatus, ticketNumberOfComp, ticketNumberOfUsers, ticketDeleteStatus)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
+        [userId, TicketDepartment, BranchCode, TicketTitle, TicketRequestedBy,  TicketDesc, TicketServiceType, TicketServiceFor, TicketStatus,  NumOfComputers, NumOfUsers, TicketDeleteStatus]
     );
     const id = result.insertId;
     return getTicket(id);
@@ -398,3 +398,9 @@ export async function makeUser(userId) {
     return { message: 'User successfully demoted to regular user' };
 
 }
+
+export const fetchBranches = async () => {
+    const query = 'SELECT * FROM tbl_branches';
+    const [results] = await pool.query(query);
+    return results;
+  };

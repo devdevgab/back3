@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Container, TextField, Button, Typography, Paper, Alert, Dialog, DialogContent, DialogActions } from '@mui/material';
+import { Container, TextField, Button, Typography, Paper, Alert, Dialog, DialogContent, DialogActions, Box, Popover, List, ListItem, ListItemButton } from '@mui/material';
 import { useUser } from './UserContext';  
+// import { Swiper, SwiperSlide } from 'swiper/react';
+// import 'swiper/swiper-bundle.min.css';
 
 
 
@@ -9,26 +11,29 @@ import { useUser } from './UserContext';
 const Ticketing = () => {
   const { userFirstName } = useUser();
   const [ticketData, setTicketData] = useState({
+    TicketDepartment: '',
+    BranchCode: '',
     TicketTitle: '',
     TicketDesc: '',
     TicketServiceType: '',
     TicketServiceFor: '',
     TicketRequestedBy: '',
     TicketStatus: '2', // Default value for Ticket Status
-    NumOfComputers: '',
-    NumOfUsers: '',
+    NumOfComputers: '0',
+    NumOfUsers: '0',
     TicketDeleteStatus: 0, // Default value for delete status
-    TicketDepartment: '',
     TicketActiveStatus: 1,  // Default value for active status
+    
   });
   
 
 
 
-
+  const [branches, setBranches] = useState([]);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
   const [loginPrompt, setLoginPrompt] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null); 
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -50,15 +55,16 @@ const Ticketing = () => {
       // Reset the form after submission
       setTicketData({
         TicketDepartment: '',
+        BranchCode: '',
         TicketTitle: '',
+        TicketRequestedBy:'', 
         TicketDesc: '',
-        TicketRequestedBy:'',
         TicketServiceType: '',
         TicketServiceFor: '',
         TicketStatus: '1',
         TicketStatusICT: '1', // Reset to default value
-        NumOfComputers: '',
-        NumOfUsers: '',
+        NumOfComputers: '0',
+        NumOfUsers: '0',
         TicketDeleteStatus: 0, // Reset to default value
         TicketActiveStatus: 1,   // Reset to default value
         
@@ -81,8 +87,23 @@ const Ticketing = () => {
   const handleClosePrompt = () => {
     setLoginPrompt(false);
   };
-  
-
+  const handleBranchClick = (branchCode) => {
+    setTicketData({ BranchCode: branchCode });
+  };
+  const handlePopoverOpen = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handlePopoverClose = () => {
+    setAnchorEl(null);
+  };
+  const handleBranchSelect = (branchCode, branchName) => {
+    setTicketData((prevState) => ({
+      ...prevState, // Preserve all existing fields
+      BranchCode: `${branchCode} - ${branchName}`, // Update only the BranchCode field
+    }));
+    handlePopoverClose(); // Close the popover after selection
+  };
+  const open = Boolean(anchorEl);
 
   useEffect(() => {
     // Fetch the session data on component mount
@@ -100,6 +121,26 @@ const Ticketing = () => {
       }
     };
 
+    const fetchBranches = async () => {
+      try {
+        const response = await axios.get('http://localhost:8080/get-branches');
+        setBranches(response.data);
+        // if (response.data.length > 0) {
+        //   setTicketData({ BranchCode: response.data[0].branchCode }); // Set default value
+        // }
+      } catch (err) {
+        console.error('Error fetching branches:', err);
+      }
+    };
+
+    fetchBranches();
+
+
+
+
+
+
+
     fetchSessionData();
   }, []);
 
@@ -115,12 +156,35 @@ const Ticketing = () => {
             margin="normal"
             required
             fullWidth
-            label="Department / Branch Code"
+            label="Department"
             name="TicketDepartment"
-            value={ticketData.TicketDepartment}
+            value={ticketData.TicketDepartment || ""}
             placeholder = "ex: ICT Main Office"
             onChange={handleChange}
           />
+
+          <Box>
+          <TextField
+            variant="outlined"
+            margin="normal"
+            required
+            fullWidth
+            label="Branch Code"
+            name="BranchCode" 
+            value={ticketData.BranchCode || ""}
+            placeholder="Select a branch"
+            onClick={handlePopoverOpen} // Open the popover when TextField is clicked
+            onChange={(e) =>
+              setTicketData((prevState) => ({
+                ...prevState, // Preserve existing ticket data
+                BranchCode: e.target.value, // Update only BranchCode
+              }))
+            } // Allow manual input
+          />
+            {/* Popover for branch selection */}
+           
+             </Box>
+
           <TextField
             variant="outlined"
             margin="normal"
@@ -128,7 +192,7 @@ const Ticketing = () => {
             fullWidth
             label="Ticket Title"
             name="TicketTitle"
-            value={ticketData.TicketTitle}
+            value={ticketData.TicketTitle || ""}
             placeholder = ""
             onChange={handleChange}
           />
@@ -139,7 +203,7 @@ const Ticketing = () => {
             fullWidth
             label="Client / Name"
             name="TicketRequestedBy"
-            value={ticketData.TicketRequestedBy}
+            value={ticketData.TicketRequestedBy || ""}
             placeholder={ticketData.TicketRequestedBy || ""}
             onChange={handleChange}
           />
@@ -150,7 +214,7 @@ const Ticketing = () => {
             fullWidth
             label="Ticket Description"
             name="TicketDesc"
-            value={ticketData.TicketDesc}
+            value={ticketData.TicketDesc || ""}
             onChange={handleChange}
           />
           <TextField
@@ -160,7 +224,7 @@ const Ticketing = () => {
             fullWidth
             label="Service Types"
             name="TicketServiceType"
-            value={ticketData.TicketServiceType}
+            value={ticketData.TicketServiceType || ""}
             onChange={handleChange}
           />
           <TextField
@@ -170,7 +234,7 @@ const Ticketing = () => {
             fullWidth
             label="Service For"
             name="TicketServiceFor"
-            value={ticketData.TicketServiceFor}
+            value={ticketData.TicketServiceFor || ""}
             placeholder={""}
             onChange={handleChange}
           />
@@ -182,7 +246,7 @@ const Ticketing = () => {
             label="Number of Computers"
             name="NumOfComputers"
             type="number"
-            value={ticketData.NumOfComputers}
+            value={ticketData.NumOfComputers || ""}
             onChange={handleChange}
           />
           <TextField
@@ -193,7 +257,7 @@ const Ticketing = () => {
             label="Number of Users"
             name="NumOfUsers"
             type="number"
-            value={ticketData.NumOfUsers}
+            value={ticketData.NumOfUsers || ""}
             onChange={handleChange}
           />
           {error && <Alert severity="error">{error}</Alert>}
@@ -209,6 +273,37 @@ const Ticketing = () => {
           </Button>
         </form>
       </Paper>
+
+
+      <Popover
+              open={open}
+              anchorEl={anchorEl}
+              onClose={handlePopoverClose}
+              anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'left',
+              }}
+              transformOrigin={{
+                vertical: 'top',
+                horizontal: 'left',
+              }}
+            >
+
+              <Box p={2}>
+                <Typography variant="h6" gutterBottom>
+                  Select a Branch
+                </Typography>
+                <List>
+                  {branches.map((branch) => (
+                    <ListItem key={branch.branchDB_ID} disablePadding>
+                      <ListItemButton onClick={() => handleBranchSelect(branch.branchCode, branch.branchName)}>
+                        {branch.branchCode} - {branch.branchName}
+                      </ListItemButton>
+                    </ListItem>
+                  ))}
+                </List>
+              </Box>
+             </Popover>
 
       {/* Login Prompt Modal */}
       <Dialog open={loginPrompt} onClose={handleClosePrompt}>
