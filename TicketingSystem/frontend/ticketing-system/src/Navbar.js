@@ -32,10 +32,6 @@ const Navbar = () => {
 
 
 
-
-
-
-
   const handleLoginRedirect = () => {
     setLoginPrompt(false); // Close the prompt
     navigate('/login'); // Redirect to the login page
@@ -77,7 +73,9 @@ const styles ={
   }
 };
   return (
+    
     <>
+   
       <AppBar position="static">
         <Toolbar>
           <Typography variant="h6" style={styles.navTitle}>
@@ -103,7 +101,7 @@ const styles ={
                <Button color="inherit" onClick={() => handleNavigation('/ticketing')}>Create Ticket</Button>
                <Button color="inherit" onClick={() => handleNavigation('/admin/dashboard')}>ICT Dashboard</Button>
                <Button color="inherit" onClick={() => handleNavigation('/admin/tickets')}>All Tickets</Button>
-               <Button color="inherit" onClick={() => handleNavigation('/ticket/:id')}>Print</Button>
+               {/* <Button color="inherit" onClick={() => handleNavigation('/ticket/:id')}>Print</Button> */}
                <Button color="inherit" onClick={handleLogout}>Logout</Button>
                
               </>

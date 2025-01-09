@@ -303,6 +303,9 @@ app.get("/get-session", (req, res) => {
 app.post("/login", async (req, res) => {
   const { Username, Password } = req.body;
 
+  if (Username == ""|| Password == ""){
+    return res.status(400).json({message: "Fields Required are empty"})
+  }
   if (!Username || !Password) {
       return res.status(400).json({ message: 'Invalid username or password' });
   }
@@ -400,7 +403,30 @@ app.put("/accept-ticketICT/:id", async (req, res) => {
     }
 });
 
+app.post("/ticket-verdict-show-author/:name/:id", async (req, res) =>{
+    const { name } = req.session.userFirstName + " " + req.session.userLastName;
+    const userId = req.session.userId;
+    const {id} = req.params;
+    // req.session.userFirstName = user.userFirstName;
+    // req.session.userLastName = user.userLastName;
+    if(!userId){
+        return res.status(401).json({message: 'User not logged in'});
+    }
+    try{
+        const updatedVerdict = await authorAccepted(name,id);
+        if(updatedVerdict){
+            res.status(200).json({message: 'Ticket Verdict Accepted'});
 
+        }else{
+            res.status(400).json({message: 'Error Verdict'});
+        }
+        
+    }catch (error){
+        console.log('Error accepting ticket',error)
+        res.status(500).json({message: 'Error Accepting Ticket', error: error.message});
+    }
+
+})
 
 
 
