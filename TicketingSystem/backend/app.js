@@ -321,7 +321,7 @@ app.post("/login", async (req, res) => {
         req.session.userFirstName = user.userFirstName;
         req.session.userLastName = user.userLastName;
         req.session.save(); // Save session to store immediately
-        console.log('User ID stored in session:', req.session.userId, 'First Name: ', req.session.userFirstName); // Check if it’s set after login
+        console.log('User ID stored in session:', req.session.userId, 'First Name: ', req.session.userFirstName, 'Last Name: ', req.session.userLastName); // Check if it’s set after login
         res.json({ message: 'Login successful', user });
     }
       
@@ -358,18 +358,52 @@ app.post("/logout", async (req, res) => {
     }
 });
 // Accept a ticket
-app.put("/accept-ticket/:id", async (req, res) => {
+app.put("/accept-ticket/:id/:name", async (req, res) => {
     const { id } = req.params;
+    const name = req.session.userFirstName + " "+ req.session.userLastName;
     const userId = req.session.userId; // Get userId from session
+
+
+    const firstName = req.session.userFirstName;
+    const lastName = req.session.userLastName;
+
 
     if (!userId) {
         return res.status(401).json({ message: 'User not logged in' });
     }
 
     try {
-        const updatedTicket = await acceptTicket(id);
+        const updatedTicket = await acceptTicket(name, id);
         if (updatedTicket) {
-            res.status(200).json({ message: 'Ticket accepted successfully', ticket: updatedTicket });
+            console.log(req.session.userFirstName + " "+ req.session.userLastName);
+            res.status(200).json({ message: 'Ticket accepted successfully', ticket: updatedTicket, ticketAuthor: {firstName: firstName, lastName: lastName}, });
+        } else {
+            res.status(404).json({ message: 'Ticket not found or already accepted' });
+        }
+    } catch (error) {
+        console.error('Error accepting ticket:', error);
+        // console.log(req.session.user.userFirstName);
+        // Return a more descriptive error response
+        res.status(500).json({ message: 'Error accepting ticket', error: error.message });
+    }
+});
+
+
+app.put("/accept-ticketICT/:id/:name", async (req, res) => {
+    const { id } = req.params;
+    const userId = req.session.userId; // Get userId from session
+    const name = req.session.userFirstName + " "+ req.session.userLastName;
+    const firstName = req.session.userFirstName;
+    const lastName = req.session.userLastName;
+
+    if (!userId) {
+        return res.status(401).json({ message: 'User not logged in' });
+    }
+
+    try {
+        const updatedTicket = await acceptTicketICT(name, id);
+        if (updatedTicket) {
+            res.status(200).json({ message: 'Ticket accepted successfully', ticket: updatedTicket, ticketAuthor: {firstName: firstName, lastName: lastName}, });
         } else {
             res.status(404).json({ message: 'Ticket not found or already accepted' });
         }
@@ -380,88 +414,48 @@ app.put("/accept-ticket/:id", async (req, res) => {
     }
 });
 
-
-app.put("/accept-ticketICT/:id", async (req, res) => {
+app.put("/decline-ticketICT/:id/:name", async (req, res) => {
     const { id } = req.params;
+    const name = req.session.userFirstName + " "+ req.session.userLastName;
     const userId = req.session.userId; // Get userId from session
+    
+    const firstName = req.session.userFirstName;
+    const lastName = req.session.userLastName;
 
     if (!userId) {
         return res.status(401).json({ message: 'User not logged in' });
     }
 
     try {
-        const updatedTicket = await acceptTicketICT(id);
+        const updatedTicket = await declineTicketICT(name, id);
         if (updatedTicket) {
-            res.status(200).json({ message: 'Ticket accepted successfully', ticket: updatedTicket });
-        } else {
-            res.status(404).json({ message: 'Ticket not found or already accepted' });
+            res.status(200).json({ message: 'Ticket declined successfully', ticket: updatedTicket, ticketAuthor: {firstName: firstName, lastName: lastName}, });
+        } else {    
+            res.status(404).json({ message: 'Ticket not found or already declined' });
         }
     } catch (error) {
-        console.error('Error accepting ticket:', error);
-        // Return a more descriptive error response
-        res.status(500).json({ message: 'Error accepting ticket', error: error.message });
+        console.error('Error declining ticket:', error);
+        res.status(500).json({ message: 'Error declining ticket' });
     }
 });
-
-app.post("/ticket-verdict-show-author/:name/:id", async (req, res) =>{
-    const { name } = req.session.userFirstName + " " + req.session.userLastName;
-    const userId = req.session.userId;
-    const {id} = req.params;
-    // req.session.userFirstName = user.userFirstName;
-    // req.session.userLastName = user.userLastName;
-    if(!userId){
-        return res.status(401).json({message: 'User not logged in'});
-    }
-    try{
-        const updatedVerdict = await authorAccepted(name,id);
-        if(updatedVerdict){
-            res.status(200).json({message: 'Ticket Verdict Accepted'});
-
-        }else{
-            res.status(400).json({message: 'Error Verdict'});
-        }
-        
-    }catch (error){
-        console.log('Error accepting ticket',error)
-        res.status(500).json({message: 'Error Accepting Ticket', error: error.message});
-    }
-
-})
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 // Decline a ticket
-app.put("/decline-ticket/:id", async (req, res) => {
+app.put("/decline-ticket/:id/:name", async (req, res) => {
     const { id } = req.params;
+    const name = req.session.userFirstName + " "+ req.session.userLastName;
     const userId = req.session.userId; // Get userId from session
+    const firstName = req.session.userFirstName;
+    const lastName = req.session.userLastName;
 
     if (!userId) {
         return res.status(401).json({ message: 'User not logged in' });
     }
 
     try {
-        const updatedTicket = await declineTicket(id);
+        const updatedTicket = await declineTicket(name, id);
         if (updatedTicket) {
-            res.status(200).json({ message: 'Ticket declined successfully', ticket: updatedTicket });
+            res.status(200).json({ message: 'Ticket declined successfully', ticket: updatedTicket, ticketAuthor: {firstName: firstName, lastName: lastName}, });
         } else {
             res.status(404).json({ message: 'Ticket not found or already declined' });
         }
@@ -472,28 +466,30 @@ app.put("/decline-ticket/:id", async (req, res) => {
 });
 
 
-app.put("/decline-ticketICT/:id", async (req, res) => {
-    const { id } = req.params;
-    const userId = req.session.userId; // Get userId from session
+
+
+app.post("/ticket-verdict-show-author/:name/:id", async (req, res) => {
+    const userId = req.session.userId;
+    const { id: ticketId } = req.params; // Destructure `id` as `ticketId`
+    const name = `${req.session.userFirstName} ${req.session.userLastName}`; // Combine session data for the name
 
     if (!userId) {
         return res.status(401).json({ message: 'User not logged in' });
     }
 
     try {
-        const updatedTicket = await declineTicketICT(id);
-        if (updatedTicket) {
-            res.status(200).json({ message: 'Ticket declined successfully', ticket: updatedTicket });
+        // Call authorAccepted with `name` and `ticketId`
+        const updatedVerdict = await authorAccepted(name, ticketId);
+        if (updatedVerdict) {
+            res.status(200).json({ message: 'Ticket Verdict Accepted' });
         } else {
-            res.status(404).json({ message: 'Ticket not found or already declined' });
+            res.status(400).json({ message: 'Error Verdict' });
         }
     } catch (error) {
-        console.error('Error declining ticket:', error);
-        res.status(500).json({ message: 'Error declining ticket' });
+        console.log('Error accepting ticket', error);
+        res.status(500).json({ message: 'Error Accepting Ticket', error: error.message });
     }
 });
-
-
 
 
 

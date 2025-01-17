@@ -202,7 +202,7 @@ const NewPrint = () => {
               <td style={styles.label}>REQUESTED BY:</td>
               <td style={styles.value}>{selectedTicket.ticketRequestedBy || "N/A"}</td>
               <td style={styles.label}>CONFIRMED BY:</td>
-              <td style={styles.value}>{"Empty" || "N/A"}</td>
+              <td style={styles.value}>{selectedTicket.ticketAuthorAccepted}</td>
             </tr>
           </tbody>
         </table>
@@ -260,7 +260,7 @@ const NewPrint = () => {
           <thead>
             <tr>
               <th style={styles.thtd}>PREPARED BY: </th>
-              <th style={styles.thtd}>CONFIRMED BY: </th>
+              <th style={styles.thtd}>CONFIRMED BY: {selectedTicket.ticketAccepted} </th>
               <th style={styles.thtd}>ENDORSED TO OR RECORDED BY: </th>
               <th style={styles.thtd}>APPROVED BY: </th>
             </tr>
@@ -268,10 +268,10 @@ const NewPrint = () => {
           <tbody>
             <tr>
               <td style={styles.signatureCell}>
-                <p>{"function pending" || "N/A"}</p>
+                <p>{selectedTicket.ticketAuthorICTAccepted}</p>
               </td>
               <td style={styles.signatureCell}>
-                <p>{"function pending" || "N/A"}</p>
+                <p>{selectedTicket.ticketAuthorAccepted}</p>
               </td>
               <td style={styles.signatureCell}>
                 <p>{"function pending" || "N/A"}</p>

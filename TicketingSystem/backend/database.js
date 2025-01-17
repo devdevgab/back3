@@ -203,15 +203,15 @@ export async function getAdminTickets(id){
 //     return rows
 // }
 
-export async function acceptTicket(id) {
+export async function acceptTicket(name, id) {
     const ticketStatus = 1; // Accepted
     const ticketResoDate = new Date(); // Current date and time for resolution date
 
 
     try {
         const [result] = await pool.query(
-            'UPDATE tbl_tickets SET ticketStatus = ?, ticketResoDate = ? WHERE ticketId = ?',
-            [ticketStatus, ticketResoDate, id]
+            'UPDATE tbl_tickets SET ticketStatus = ?, ticketResoDate = ?, ticketAuthorAccepted = ? WHERE ticketId = ?',
+            [ticketStatus, ticketResoDate, name, id]
         );
 
         if (result.affectedRows > 0) {
@@ -227,15 +227,15 @@ export async function acceptTicket(id) {
 
 
 
-export async function acceptTicketICT(id) {
+export async function acceptTicketICT(name, id) {
     const ticketStatusICT = 1; // Accepted
     const ticketResoDate = new Date(); // Current date and time for resolution date
 
 
     try {
         const [result] = await pool.query(
-            'UPDATE tbl_tickets SET ticketStatusICT = ?, ticketResoDate = ? WHERE ticketId = ?',
-            [ticketStatusICT, ticketResoDate, id]
+            'UPDATE tbl_tickets SET ticketStatusICT = ?, ticketResoDate = ?, ticketAuthorICTAccepted = ? WHERE ticketId = ?',
+            [ticketStatusICT, ticketResoDate, name, id]
         );
 
         if (result.affectedRows > 0) {
@@ -247,6 +247,65 @@ export async function acceptTicketICT(id) {
     } catch (error) {
         throw error; // Handle error appropriately
     }
+}
+
+export async function declineTicketICT(name, id) {
+    const ticketStatusICT = 0; // Not accepted
+    const ticketResoDate = new Date(); // No resolution date for declined tickets
+
+    try {
+        const [result] = await pool.query(
+            'UPDATE tbl_tickets SET ticketStatusICT = ?, ticketResoDate = ?, ticketAuthorICTDeclined = ? WHERE ticketId = ?',
+            [ticketStatusICT, ticketResoDate, name, id]
+        );
+
+        if (result.affectedRows > 0) {
+            const updatedTicket = await getTicket(id);
+            return updatedTicket;
+        } else {
+            return null; // Ticket not found or not updated
+        }
+    } catch (error) {
+        throw error; // Handle error appropriately
+    }
+}
+export async function declineTicket(name, id) {
+    const ticketStatus = 0; // Not accepted
+    const ticketResoDate = new Date(); // No resolution date for declined tickets
+
+    try {
+        const [result] = await pool.query(
+            'UPDATE tbl_tickets SET ticketStatus = ?, ticketResoDate = ?, ticketAuthorDeclined = ? WHERE ticketId = ?',
+            [ticketStatus, ticketResoDate, name, id]
+        );
+
+        if (result.affectedRows > 0) {
+            const updatedTicket = await getTicket(id);
+            return updatedTicket;
+        } else {
+            return null; // Ticket not found or not updated
+        }
+    } catch (error) {
+        throw error; // Handle error appropriately
+    }
+}
+export async function authorAccepted(name, ticketId) {
+    const ticketAcceptedDate = new Date();
+    try {
+        // Use ticketId and other required values in the query
+        const [result] = await pool.query(
+            'INSERT INTO tbl_verdict (ticketId, ticketAuthor, ticketAcceptedBy, ticketDeclineBy, ticketAcceptedDate, ticketDeclinedDate) VALUES (?, ?, ?, ?, ?, ?)',
+            [ticketId, name, name, null, ticketAcceptedDate, null] // Adjust the values as per your requirements
+        );
+        return result.affectedRows > 0; // Return true if a row was inserted
+    } catch (error) {
+        console.error('Database error:', error);
+        throw error; // Rethrow the error to be handled by the caller
+    }
+}
+export async function authorDeclined(){
+    const ticketDeclinedDate= new Date();
+
 }
 
 
@@ -264,48 +323,10 @@ export async function acceptTicketICT(id) {
 
 
 // Function to decline a ticket
-export async function declineTicket(id) {
-    const ticketStatus = 0; // Not accepted
-    const ticketResoDate = new Date(); // No resolution date for declined tickets
-
-    try {
-        const [result] = await pool.query(
-            'UPDATE tbl_tickets SET ticketStatus = ?, ticketResoDate = ? WHERE ticketId = ?',
-            [ticketStatus, ticketResoDate, id]
-        );
-
-        if (result.affectedRows > 0) {
-            const updatedTicket = await getTicket(id);
-            return updatedTicket;
-        } else {
-            return null; // Ticket not found or not updated
-        }
-    } catch (error) {
-        throw error; // Handle error appropriately
-    }
-}
 
 
-export async function declineTicketICT(id) {
-    const ticketStatusICT = 0; // Not accepted
-    const ticketResoDate = new Date(); // No resolution date for declined tickets
 
-    try {
-        const [result] = await pool.query(
-            'UPDATE tbl_tickets SET ticketStatusICT = ?, ticketResoDate = ? WHERE ticketId = ?',
-            [ticketStatusICT, ticketResoDate, id]
-        );
 
-        if (result.affectedRows > 0) {
-            const updatedTicket = await getTicket(id);
-            return updatedTicket;
-        } else {
-            return null; // Ticket not found or not updated
-        }
-    } catch (error) {
-        throw error; // Handle error appropriately
-    }
-}
 
 
 

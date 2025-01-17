@@ -7,6 +7,11 @@ import TicketButton from './TicketButton';
 import { PrintPage } from './PrintPage';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useContext } from 'react';
+// import {UserContext} from './UserContext';
+// import {UserProvider, useUser} from './UserContext';
+// import { UserContext } from './UserContext';
+import { UserProvider } from './UserContext';
 // import MuiAlert from '@mui/material/Alert';
 import {
     Container,
@@ -99,6 +104,7 @@ const Home = () => {
     const [determineCloseOrOpen, setDetermineCloseOrOpen] = useState(null);
     const [popupMessage, setPopupMessage] = useState('');
     const [alertMessage, setAlertMessage] = useState('');
+    // const { userFirstName } = useContext(UserProvider)
     // const history = useHistory();
     const navigate = useNavigate();
 
@@ -245,12 +251,14 @@ const Home = () => {
     // };
 
 
-    const handleAccept = async (ticketId) => {
+    const handleAccept = async (ticketId,ticketAuthorAccepted) => {
         try {
-            const response = await fetch(`http://localhost:8080/accept-ticket/${ticketId}`, {
+            
+            const response = await fetch(`http://localhost:8080/accept-ticket/${ticketId}/${ticketAuthorAccepted}`, {
                 method: 'PUT',
                 credentials: 'include',
             });
+            const reload= "requires reload";
             const updatedTicket = await response.json();
 
             // Remove the accepted ticket from the list
@@ -258,13 +266,54 @@ const Home = () => {
 
             setTickets(prevTickets =>
                 prevTickets.map(ticket =>
-                    ticket.ticketId === ticketId ? { ...ticket, ticketStatus: "1" } : ticket
+                    ticket.ticketId === ticketId 
+                    ? { 
+                        ...ticket, 
+                        ticketStatus: "1", 
+                        ticketAuthorAccepted: updatedTicket.ticketAuthor.firstName
+                    } 
+                    : ticket
                 )
             );
 
             handleClose();
         } catch (error) {
             console.error('Error accepting ticket:', error);
+        }
+    };
+
+    const handleDecline = async (ticketId, ticketAuthorDeclined) => {
+        try {
+            const response = await fetch(`http://localhost:8080/decline-ticket/${ticketId}/${ticketAuthorDeclined}`, {
+                method: 'PUT',
+                credentials: 'include',
+            });
+            const updatedTicket = await response.json();
+
+            const reload= "requires reload";
+
+            if (!response.ok) {
+                throw new Error('Failed to decline ticket');
+            }
+
+           
+            // Update the local state with the declined ticket, setting its status to 0
+            setTickets(prevTickets =>
+                prevTickets.map(ticket =>
+                    ticket.ticketId === ticketId 
+                    ? {
+                         ...ticket, 
+                         ticketStatus: "0", 
+                         ticketAuthorDeclined: updatedTicket.ticketAuthor.firstName
+                        } 
+                        : ticket
+                )
+            );
+
+
+            handleClose(); // Close the dialog
+        } catch (error) {
+            console.error('Error declining ticket:', error);
         }
     };
     // const handleDecline = async (ticketId) => {
@@ -293,36 +342,14 @@ const Home = () => {
     //     }
     // };
 
-    const handleDecline = async (ticketId) => {
-        try {
-            const response = await fetch(`http://localhost:8080/decline-ticket/${ticketId}`, {
-                method: 'PUT',
-                credentials: 'include',
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to decline ticket');
-            }
-
-            const updatedTicket = await response.json();
-
-            // Update the local state with the declined ticket, setting its status to 0
-            setTickets(prevTickets =>
-                prevTickets.map(ticket =>
-                    ticket.ticketId === ticketId ? { ...ticket, ticketStatus: "0" } : ticket
-                )
-            );
-
-
-            handleClose(); // Close the dialog
-        } catch (error) {
-            console.error('Error declining ticket:', error);
-        }
-    };
+    
     const handleAcceptCloseTicket = async () => {
+        
         if (!selectedTicket) return;
 
         try {
+            // const updatedTicket = await handleAccept(selectedTicket.ticketId);
+             // Update with correct source of name
             const updatedTicket = await handleAccept(selectedTicket.ticketId);
             if (updatedTicket) {
                 // Update the local state with the accepted ticket
@@ -376,23 +403,32 @@ const Home = () => {
     };
 
 
-    const handleICTAccept = async (ticketId) => {
+    const handleICTAccept = async (ticketId,ticketAuthorICTAccepted) => {
         try {
-            const response = await fetch(`http://localhost:8080/accept-ticketICT/${ticketId}`, {
+            const response = await fetch(`http://localhost:8080/accept-ticketICT/${ticketId}/${ticketAuthorICTAccepted}`, {
                 method: 'PUT',
                 credentials: 'include',
             });
             const updatedTicket = await response.json();
-
+            const reload= "requires reload";
+            // const tempUser = req.session.user.ticketAuthorAccepted;
             // Remove the accepted ticket from the list
             // setTickets(prevTickets => prevTickets.filter(ticket => ticket.ticketId !== ticketId));
-
+          
             setTickets(prevTickets =>
                 prevTickets.map(ticket =>
-                    ticket.ticketId === ticketId ? { ...ticket, ticketStatusICT: "1" } : ticket
+                    ticket.ticketId === ticketId 
+                    ? { 
+                        ...ticket, 
+                        ticketStatusICT: "1" , 
+                        ticketAuthorICTAccepted: [updatedTicket.ticketAuthor.firstName, " ", updatedTicket.ticketAuthor.lastName]
+                    
+                    } 
+                    : ticket
                 )
+            
             );
-
+       
             handleClose();
         } catch (error) {
             console.error('Error accepting ticket:', error);
@@ -419,13 +455,14 @@ const Home = () => {
 
 
 
-    const handleICTDecline = async (ticketId) => {
+    const handleICTDecline = async (ticketId, ticketAuthorICTDeclined) => {
         try {
-            const response = await fetch(`http://localhost:8080/decline-ticketICT/${ticketId}`, {
+            const response = await fetch(`http://localhost:8080/decline-ticketICT/${ticketId}/${ticketAuthorICTDeclined}`, {
                 method: 'PUT',
                 credentials: 'include',
             });
-
+            
+            const reload= "requires reload";
             if (!response.ok) {
                 throw new Error('Failed to decline ticket');
             }
@@ -435,7 +472,12 @@ const Home = () => {
             // Update the local state with the declined ticket, setting its status to 0
             setTickets(prevTickets =>
                 prevTickets.map(ticket =>
-                    ticket.ticketId === ticketId ? { ...ticket, ticketStatusICT: "0" } : ticket
+                    ticket.ticketId === ticketId 
+                    ? { 
+                        ...ticket, ticketStatusICT: "0", 
+                        ticketAuthorICTDeclined: updatedTicket.ticketAuthor.firstName,  
+                    } 
+                    : ticket
                 )
             );
 
@@ -524,6 +566,7 @@ const Home = () => {
                                 <StyledTableCell>Ticket ID</StyledTableCell>
                                 <StyledTableCell>Title</StyledTableCell>
                                 <StyledTableCell>Description</StyledTableCell>
+                                
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -534,6 +577,8 @@ const Home = () => {
                                         <TableCell>{ticket.ticketId}</TableCell>
                                         <TableCell>{ticket.ticketTitle}</TableCell>
                                         <TableCell>{ticket.ticketDesc}</TableCell>
+                                        
+
                                     </StyledTableRow>
                                 ))}
                         </TableBody>
@@ -579,20 +624,35 @@ const Home = () => {
                                         <DescriptionCell>{selectedTicket.ticketDesc}</DescriptionCell>
                                     </TableRow>
                                     <TableRow>
+                                        <DetailTableCell><strong>User</strong></DetailTableCell>
+                                        <DescriptionCell>{selectedTicket.ticketRequestedBy}</DescriptionCell>
+                                    </TableRow>
+                                    <TableRow>
+                                        <DetailTableCell><strong>Branch Code</strong></DetailTableCell>
+                                        <DescriptionCell>{selectedTicket.branchCode}</DescriptionCell>
+                                    </TableRow>
+
+                                    <TableRow>
                                         <DetailTableCell><strong>Status</strong></DetailTableCell>
                                         <DetailTableCell>
 
                                             {selectedTicket.ticketStatusICT === "0" && (
                                                 <div style={{ marginBottom: '8px' }}> {/* Adjust the margin as needed */}
                                                     <span className="status-declined">
-                                                        ICT Declined
+                                                        ICT Declined by {selectedTicket.ticketAuthorICTDeclined}
                                                     </span>
                                                 </div>
                                             )}
                                             {selectedTicket.ticketStatusICT === "1" && (
                                                 <div style={{ marginBottom: '8px' }}> {/* Adjust the margin as needed */}
                                                     <span className="status-accepted">
-                                                        ICT Accepted
+                                                        ICT Accepted by {selectedTicket.ticketAuthorICTAccepted}
+
+                                                      
+                                                       
+                                                        
+                                                       
+                                                        
                                                     </span>
                                                 </div>
                                             )}
@@ -607,7 +667,7 @@ const Home = () => {
                                             {selectedTicket.ticketStatus === "0" && (
                                                 <div style={{ marginBottom: '8px' }}> {/* Adjust the margin as needed */}
                                                     <span className="status-declined">
-                                                        Branch Manager Declined
+                                                        Branch Manager Declined by {selectedTicket.ticketAuthorDeclined}
                                                     </span>
                                                 </div>
                                             )}
@@ -615,7 +675,7 @@ const Home = () => {
                                             {selectedTicket.ticketStatus === "1" && (
                                                 <div style={{ marginBottom: '8px' }}> {/* Adjust the margin as needed */}
                                                     <span className="status-accepted">
-                                                        Branch Manager Accepted
+                                                        Branch Manager Accepted by {selectedTicket.ticketAuthorAccepted}
                                                     </span>
                                                 </div>
                                             )}

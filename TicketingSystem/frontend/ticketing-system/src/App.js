@@ -13,6 +13,7 @@ import PrintPage from './PrintPage';
 import './App.css';
 
 const AppContent = () => {
+  const [isLoading, setIsLoading] = useState (true);
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   
@@ -20,6 +21,14 @@ const AppContent = () => {
   const isNewPrintPage = location.pathname.startsWith('/ticket/');
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+
+    }, 2000);
+    return () => clearTimeout(timer);
+
+  
+
     // Fetch tickets from your API
     const fetchTickets = async () => {
       try {
@@ -37,6 +46,8 @@ const AppContent = () => {
   }, []);
 
   return (
+    
+
     <div className="App">
       {!isNewPrintPage && <Navbar />}
       <Routes>
@@ -51,7 +62,9 @@ const AppContent = () => {
         {/* Redirect any unknown routes to login */}
         <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
-    </div>
+   
+
+   </div>
   );
 };
 
