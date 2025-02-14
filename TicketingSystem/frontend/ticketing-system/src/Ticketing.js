@@ -9,7 +9,9 @@ import { useUser } from './UserContext';
 
 
 const Ticketing = () => {
-  const { userFirstName } = useUser();
+  // const { userFirstName } = useUser();
+  const { userFirstName, setUserFirstName, userDepartment, setUserDepartment } = useUser();
+ 
   const [ticketData, setTicketData] = useState({
     TicketDepartment: '',
     BranchCode: '',
@@ -31,8 +33,9 @@ const Ticketing = () => {
 
   const [branches, setBranches] = useState([]);
   const [success, setSuccess] = useState('');
-  const [error, setError] = useState('');
   const [loginPrompt, setLoginPrompt] = useState(false);
+  const [error, setError] = useState('');
+  
   const [anchorEl, setAnchorEl] = useState(null); 
 
   const handleChange = (e) => {
@@ -49,7 +52,7 @@ const Ticketing = () => {
 
     try {
       // Making the POST request with credentials
-      const response = await axios.post('http://localhost:8080/create-ticket', ticketData, { withCredentials: true });
+      const response = await axios.post('http://192.168.10.245:8080/create-ticket', ticketData, { withCredentials: true });
       setSuccess(response.data.message);
 
       // Reset the form after submission
@@ -109,12 +112,13 @@ const Ticketing = () => {
     // Fetch the session data on component mount
     const fetchSessionData = async () => {
       try {
-        const response = await axios.get('http://localhost:8080/get-session', { withCredentials: true });
+        const response = await axios.get('http://192.168.10.245:8080/get-session', { withCredentials: true });
         const { userFirstName } = response.data;
         // Set the first name in the ticket data
         setTicketData(prevData => ({
           ...prevData,
           TicketRequestedBy: userFirstName,
+          TicketDepartment: response.data.userDepartment
         }));
       } catch (error) {
         console.error('Error fetching session data:', error);
@@ -123,7 +127,7 @@ const Ticketing = () => {
 
     const fetchBranches = async () => {
       try {
-        const response = await axios.get('http://localhost:8080/get-branches');
+        const response = await axios.get('http://192.168.10.245:8080/get-branches');
         setBranches(response.data);
         // if (response.data.length > 0) {
         //   setTicketData({ BranchCode: response.data[0].branchCode }); // Set default value
@@ -134,14 +138,10 @@ const Ticketing = () => {
     };
 
     fetchBranches();
-
-
-
-
-
-
-
     fetchSessionData();
+
+
+
   }, []);
 
   return (
@@ -158,10 +158,29 @@ const Ticketing = () => {
             fullWidth
             label="Department"
             name="TicketDepartment"
+            // value={ticketData.TicketDepartment || ""}
             value={ticketData.TicketDepartment || ""}
-            placeholder = "ex: ICT Main Office"
+            placeholder={ticketData.TicketDepartment || ""}
+            
             onChange={handleChange}
+            InputProps={{
+              readOnly: true,  // Makes the field not editable
+            }}
           />
+
+
+            {/* <TextField
+            variant="outlined"
+            margin="normal"
+            required
+            fullWidth
+            label="Branch Code"
+            name="BranchCode"
+            value={ticketData.BranchCode || ""}
+            placeholder = {ticketData.BranchCode}
+            onChange={handleChange}
+          /> */}
+
 
           <Box>
           <TextField
@@ -235,7 +254,7 @@ const Ticketing = () => {
             label="Service For"
             name="TicketServiceFor"
             value={ticketData.TicketServiceFor || ""}
-            placeholder={""}
+            placeholder={"Device Brand or Device Bar Code"}
             onChange={handleChange}
           />
           <TextField

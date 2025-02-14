@@ -1,23 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import {
-  Container,
-  TextField,
-  Button,
-  Typography,
-  Paper,
-  Alert,
-  Box,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  styled,
-  InputAdornment,
-  IconButton,
-} from '@mui/material';
+import {Container, TextField,Button,Typography,Paper,Alert,Box,Table,TableBody,TableCell,TableContainer,TableHead,TableRow,styled,InputAdornment,IconButton,Popover,List,ListItemButton,ListItem} from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 
 // Styled Table Cell
@@ -49,6 +32,7 @@ const AdminDashboard = () => {
     Password: '',
     Email: '',
     Phone: '',
+    BranchCode: '',
     Department: '',
   });
   const [users, setUsers] = useState([]);
@@ -56,12 +40,39 @@ const AdminDashboard = () => {
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null); 
+  const [branches, setBranches] = useState([]);
+  
 
   // Fetch Users on Component Mount or Success Change
   useEffect(() => {
+
+
+    const fetchBranches = async () => {
+      try {
+        const response = await axios.get('http://192.168.10.245:8080/get-branches');
+        setBranches(response.data);
+        // if (response.data.length > 0) {
+        //   setTicketData({ BranchCode: response.data[0].branchCode }); // Set default value
+        // }
+      } catch (err) {
+        console.error('Error fetching branches:', err);
+      }
+    };
+
+    fetchBranches();
+
+
+
+
+
+
+
+
+
     const fetchUsers = async () => {
       try {
-        const response = await axios.get('http://localhost:8080/admin-all-users', {
+        const response = await axios.get('http://192.168.10.245:8080/admin-all-users', {
           withCredentials: true,
         });
         setUsers(response.data);
@@ -96,7 +107,7 @@ const AdminDashboard = () => {
     setSuccess('');
 
     try {
-      await axios.post('http://localhost:8080/create', userData, { withCredentials: true });
+      await axios.post('http://192.168.10.245:8080/create', userData, { withCredentials: true });
       setSuccess('User added successfully');
       setUserData({
         FirstName: '',
@@ -105,6 +116,7 @@ const AdminDashboard = () => {
         Password: '',
         Email: '',
         Phone: '',
+        BranchCode:'',
         Department: '',
       });
     } catch (error) {
@@ -116,7 +128,7 @@ const AdminDashboard = () => {
   const handleRoleChange = async (username, currentRole, userId) => {
     try {
       const route = currentRole === 0 ? `/make-user/${userId}` : `/make-admin/${userId}`;
-      const response = await axios.put(`http://localhost:8080${route}`, {}, { withCredentials: true });
+      const response = await axios.put(`http://192.168.10.245:8080${route}`, {}, { withCredentials: true });
 
       setSuccess(response.data.message);
       setUsers(
@@ -133,6 +145,20 @@ const AdminDashboard = () => {
   const handleSearch = (event) => {
     setSearchQuery(event.target.value.toLowerCase());
   };
+  const handlePopoverOpen = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handlePopoverClose = () => {
+    setAnchorEl(null);
+  };
+  const handleBranchSelect = (branchCode, branchName) => {
+    setUserData((prevState) => ({
+      ...prevState, // Preserve all existing fields
+      BranchCode: `${branchCode} - ${branchName}`, // Update only the BranchCode field
+    }));
+    handlePopoverClose(); // Close the popover after selection
+  };
+  const open = Boolean(anchorEl);
   
   // Filter Users Based on Search Query
   const filteredUsers = users.filter((user) => {
@@ -164,7 +190,7 @@ const AdminDashboard = () => {
       }}
     >
       {/* Left Box - Form */}
-      <Box sx={{ flex: 0.5 }}>
+      <Box sx={{ flex: 0.7 }}>
         <Paper elevation={6} style={{ padding: '16px' }}>
           <Typography variant="h5" gutterBottom>
             Create User
@@ -247,6 +273,24 @@ const AdminDashboard = () => {
               margin="normal"
               required
               fullWidth
+              label="Branch Code"
+              name="BranchCode"
+              value={userData.BranchCode}
+              onClick={handlePopoverOpen} // Open the popover when TextField is clicked
+               onChange={(e) =>
+              setUserData((prevState) => ({
+                ...prevState, // Preserve existing ticket data
+                BranchCode: e.target.value, // Update only BranchCode
+              }))
+            }
+              
+              
+            />
+            <TextField
+              variant="outlined"
+              margin="normal"
+              required
+              fullWidth
               label="Department"
               name="Department"
               value={userData.Department}
@@ -266,6 +310,39 @@ const AdminDashboard = () => {
           </form>
         </Paper>
       </Box>
+      <Popover
+              open={open}
+              anchorEl={anchorEl}
+              onClose={handlePopoverClose}
+              anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'left',
+              }}
+              transformOrigin={{
+                vertical: 'top',
+                horizontal: 'left',
+              }}
+            >
+
+              <Box p={2}>
+                <Typography variant="h6" gutterBottom>
+                  Select a Branch
+                </Typography>
+                <List>
+                  {branches.map((branch) => (
+                    <ListItem key={branch.branchDB_ID} disablePadding>
+                      <ListItemButton onClick={() => handleBranchSelect(branch.branchCode, branch.branchName)}>
+                        {branch.branchCode} - {branch.branchName}
+                      </ListItemButton>
+                    </ListItem>
+                  ))}
+                </List>
+              </Box>
+             </Popover>
+
+
+
+
 
       {/* Right Box - User List Table */}
       <Box sx={{ flex: 1 }}>
@@ -286,21 +363,27 @@ const AdminDashboard = () => {
             <Table>
               <TableHead>
                 <TableRow>
+                <StyledTableCell>Name</StyledTableCell>
                   <StyledTableCell>Username</StyledTableCell>
-                  <StyledTableCell>Email</StyledTableCell>
+                 
                   <StyledTableCell>Phone</StyledTableCell>
+                  <StyledTableCell>Password</StyledTableCell>
                   <StyledTableCell>Department</StyledTableCell>
                   <StyledTableCell>Role</StyledTableCell>
                   <StyledTableCell>Actions</StyledTableCell>
+                  
                 </TableRow>
               </TableHead>
               <TableBody>
                 {filteredUsers.map((user) => (
                   <StyledTableRow key={user.userId}>
+                    <TableCell>{user.userFirstName}</TableCell>
                     <TableCell>{user.username}</TableCell>
-                    <TableCell>{user.userEmail}</TableCell>
+                    
                     <TableCell>{user.userPhone}</TableCell>
+                    <TableCell>{user.passwrd}</TableCell>
                     <TableCell>{user.department}</TableCell>
+                    
                     <TableCell>{user.role === 1 ? 'Branch Manager' : user.role === 2 ? 'Admin ' : 'User'}</TableCell>
                     <TableCell>
                       <Button

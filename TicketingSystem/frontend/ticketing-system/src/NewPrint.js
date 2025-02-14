@@ -10,7 +10,7 @@ const NewPrint = () => {
   useEffect(() => {
     const fetchTicket = async () => {
       try {
-        const response = await axios.get(`http://localhost:8080/tickets/${id}`, { withCredentials: true });
+        const response = await axios.get(`http://192.168.10.245:8080/tickets/${id}`, { withCredentials: true });
         setSelectedTicket(response.data);
       } catch (err) {
         setError(err.response?.data?.message || 'Error fetching ticket');

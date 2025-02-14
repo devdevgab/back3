@@ -25,7 +25,7 @@ const Login = () => {
     setSuccess('');
 
     try {
-      const response = await axios.post('http://localhost:8080/login', {
+      const response = await axios.post('http://192.168.10.245:8080/login', {
          Username: username,
          Password: password,
       }, { withCredentials: true }); // Enable session cookies

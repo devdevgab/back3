@@ -96,7 +96,7 @@ const AdminTickets = () => {
 
         const fetchTickets = async () => {
             try {
-                const response = await axios.get('http://localhost:8080/admin/tickets', { withCredentials: true });
+                const response = await axios.get('http://192.168.10.245:8080/admin/tickets', { withCredentials: true });
                 if (isMounted) {
                     setTickets(response.data);
                     console.log('Fetched Tickets:', response.data);
@@ -110,7 +110,7 @@ const AdminTickets = () => {
 
         const fetchStatusTicket = async () => {
             try {
-                const response = await axios.get('http://localhost:8080/ticket-status', { withCredentials: true });
+                const response = await axios.get('http://192.168.10.245:8080/ticket-status', { withCredentials: true });
                 setDetermineCloseOrOpen(response.data.ticketStatus);
 
             } catch (error) {
@@ -122,7 +122,7 @@ const AdminTickets = () => {
 
         const fetchUserRole = async () => {
             try {
-                const response = await axios.get('http://localhost:8080/check-role', { withCredentials: true });
+                const response = await axios.get('http://192.168.10.245:8080/check-role', { withCredentials: true });
                 setUserRole(response.data.role); // Set user role from response
             } catch (error) {
                 console.error('Error fetching user role:', error);
@@ -192,7 +192,7 @@ const AdminTickets = () => {
     // };
     const handleAccept = async (ticketId, ticketAuthorAccepted) => {
         try {
-            const response = await fetch(`http://localhost:8080/accept-ticket/${ticketId}/${ticketAuthorAccepted}`, {
+            const response = await fetch(`http://192.168.10.245:8080/accept-ticket/${ticketId}/${ticketAuthorAccepted}`, {
                 method: 'PUT',
                 credentials: 'include',
             }); 
@@ -220,7 +220,7 @@ const AdminTickets = () => {
     };
     const handleDecline = async (ticketId, ticketAuthorDeclined) => {
         try {
-            const response = await fetch(`http://localhost:8080/decline-ticket/${ticketId}/${ticketAuthorDeclined}`, {
+            const response = await fetch(`http://192.168.10.245:8080/decline-ticket/${ticketId}/${ticketAuthorDeclined}`, {
                 method: 'PUT',
                 credentials: 'include',
             });
@@ -293,7 +293,7 @@ const AdminTickets = () => {
 
     const handleICTAccept = async (ticketId,ticketAuthorICTAccepted) => {
         try {
-            const response = await fetch(`http://localhost:8080/accept-ticketICT/${ticketId}/${ticketAuthorICTAccepted}`, {
+            const response = await fetch(`http://192.168.10.245:8080/accept-ticketICT/${ticketId}/${ticketAuthorICTAccepted}`, {
                 method: 'PUT',
                 credentials: 'include',
             });
@@ -342,7 +342,7 @@ const AdminTickets = () => {
 
     const handleICTDecline = async (ticketId, ticketAuthorICTDeclined) => {
         try {
-            const response = await fetch(`http://localhost:8080/decline-ticketICT/${ticketId}/${ticketAuthorICTDeclined}`, {
+            const response = await fetch(`http://192.168.10.245:8080/decline-ticketICT/${ticketId}/${ticketAuthorICTDeclined}`, {
                 method: 'PUT',
                 credentials: 'include',
             });
@@ -560,6 +560,7 @@ const AdminTickets = () => {
                         <TableHead>
                             <TableRow>
                                 <StyledTableCell>Ticket ID</StyledTableCell>
+                                <StyledTableCell>Branch</StyledTableCell>
                                 <StyledTableCell>Title</StyledTableCell>
                                 <StyledTableCell>Description</StyledTableCell>
                             </TableRow>
@@ -570,6 +571,7 @@ const AdminTickets = () => {
                                 .map(ticket => (
                                     <StyledTableRow key={ticket.ticketId} onClick={() => handleRowClick(ticket)}>
                                         <TableCell>{ticket.ticketId}</TableCell>
+                                        <TableCell>{ticket.branchCode}</TableCell>
                                         <TableCell>{ticket.ticketTitle}</TableCell>
                                         <TableCell>{ticket.ticketDesc}</TableCell>
                                     </StyledTableRow>
@@ -607,6 +609,7 @@ const AdminTickets = () => {
                                         <DetailTableCell><strong>Ticket ID</strong></DetailTableCell>
                                         <DetailTableCell>{selectedTicket.ticketId}</DetailTableCell>
                                     </TableRow>
+                                    
                                     <TableRow>
                                         <DetailTableCell><strong>Title</strong></DetailTableCell>
                                         <DetailTableCell>{selectedTicket.ticketTitle}</DetailTableCell>
@@ -671,6 +674,13 @@ const AdminTickets = () => {
                                                 </div>
                                             )}
                                             {selectedTicket.ticketStatusICT === "" && (
+                                                <div style={{ marginBottom: '8px' }}>
+                                                    <span className="status-pending">
+                                                        ICT Pending
+                                                    </span>
+                                                </div>
+                                            )}
+                                            {selectedTicket.ticketStatusICT === null && (
                                                 <div style={{ marginBottom: '8px' }}>
                                                     <span className="status-pending">
                                                         ICT Pending

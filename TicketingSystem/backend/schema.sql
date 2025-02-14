@@ -75,3 +75,34 @@ ADD COLUMN ticketNumberOfComp VARCHAR(255) NOT NULL;
 
 ALTER TABLE tbl_tickets
 ADD COLUMN ticketNumberOfUsers VARCHAR(255) NOT NULL;
+
+
+CREATE TABLE tbl_verdict (
+    ticketVerdictId INT PRIMARY KEY AUTO_INCREMENT,
+    ticketId INT NOT NULL,
+    ticketAuthor VARCHAR (255) NOT NULL,
+    ticketAcceptedBy VARCHAR(255) NOT NULL,
+    ticketDeclinedBy VARCHAR(255) NOT NULL,
+    created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    
+);
+
+ALTER TABLE tbl_verdict 
+ADD COLUMN ticketAcceptedDate VARCHAR(255) NOT NULL,
+ADD COLUMN ticketDeclinedDate VARCHAR(255) NOT NULL;
+
+
+ALTER TABLE tbl_tickets
+ADD COLUMN ticketAuthorAccepted VARCHAR(255) NOT NULL;
+
+ALTER TABLE tbl_tickets
+ADD COLUMN ticketAuthorICTAccepted VARCHAR(255) NOT NULL;
+
+ALTER TABLE tbl_tickets
+ADD COLUMN ticketAuthorDeclined VARCHAR(255) NOT NULL;
+ALTER TABLE tbl_tickets
+ADD COLUMN ticketAuthorICTDeclined VARCHAR(255) NOT NULL;
+
+
+
+

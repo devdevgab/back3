@@ -10,6 +10,13 @@ import AdminTickets from './AdminTickets';
 import AdminDashboard from './AdminDashboard';
 import NewPrint from './NewPrint';
 import PrintPage from './PrintPage';
+import BranchTickets from './BranchTickets';
+import AcceptedTickets from './AcceptedTickets';
+import TicketStatusPage from './TicketStatusPage';
+import Footer from './Footer';
+import './css/Footer.css';
+
+
 import './App.css';
 
 const AppContent = () => {
@@ -21,11 +28,11 @@ const AppContent = () => {
   const isNewPrintPage = location.pathname.startsWith('/ticket/');
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
+    // const timer = setTimeout(() => {
+    //   setIsLoading(false);
 
-    }, 2000);
-    return () => clearTimeout(timer);
+    // }, 2000);
+    // return () => clearTimeout(timer);
 
   
 
@@ -50,21 +57,29 @@ const AppContent = () => {
 
     <div className="App">
       {!isNewPrintPage && <Navbar />}
+      <div className="content">
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/ticketing" element={<Ticketing />} />
         <Route path="/home" element={<Home />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/tickets" element={<AdminTickets />} />
+        <Route path="/branch/tickets" element={<BranchTickets />} />
+        <Route path ="/status" element ={<TicketStatusPage/>} />
+        <Route path="/tickets/accepted" element={<AcceptedTickets />} />
         <Route path="/print" element={<Print />} />
         <Route path="/ticket/:id" element={<NewPrint tickets={tickets} />} />
+        
         <Route path="/print/:id" element={<PrintPage />} />
+        
         {/* Redirect any unknown routes to login */}
         <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
+      </div>
    
-
+      {!isNewPrintPage && <Footer />}
    </div>
+   
   );
 };
 

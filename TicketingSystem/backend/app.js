@@ -1,5 +1,5 @@
 import express from 'express'
-import {getUsers,getTicket,makeAdmin,makeUser,declineTicketICT,acceptTicketICT, fetchBranches,getAllTickets,createUser,login, createTicket,updateTicket,deleteTicket, getUserTickets, getAdminTickets, acceptTicket, declineTicket, checkLoginStatus, checkUserRole, getUser} from './database.js'
+import {getUsers,getTicket,makeAdmin,getUserDetails,uploadRemarks,plsTicket,getTicketResolvedAdmin, getTicketResolved,openTicket, closeTicket, getAcceptedTickets, makeUser,declineTicketICT,acceptTicketICT,getBranchTickets,fetchBranches,getAllTickets,createUser,login, createTicket,updateTicket,deleteTicket, getUserTickets, getAdminTickets, acceptTicket, declineTicket, checkLoginStatus, checkUserRole, getUser} from './database.js'
 import bodyParser from 'body-parser'
 import session from 'express-session';
 import cors from 'cors';
@@ -12,18 +12,35 @@ const app = express()
 // app.use(cors());
 app.use(bodyParser.json())
 
+// const corsOptions = {
+//     origin: (origin, callback) => {
+//         const allowedOrigins = ['http://localhost:3000', 'http://107.25.99.1:3000'];
+//         if (allowedOrigins.includes(origin) || !origin) {  // !origin allows requests like Postman or server-side
+//             callback(null, true);
+//         } else {
+//             callback(new Error('Not allowed by CORS'));
+//         }
+//     },
+//     methods: ['GET', 'POST', 'PUT', 'DELETE'],
+//     allowedHeaders: ['Content-Type', 'Authorization'],
+//     credentials: true,
+// };
 const corsOptions = {
-    origin: (origin, callback) => {
-        const allowedOrigins = ['http://localhost:3000', 'http://107.25.99.1:3000'];
-        if (allowedOrigins.includes(origin) || !origin) {  // !origin allows requests like Postman or server-side
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
+    origin:(origin, callback ) => {
+        if(origin){
+            callback(null, origin);
         }
+        else{
+            callback(null,true);
+        }
+
     },
+
+    
+    
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
+    allowedHeaders: ['Content-Type','Authorization'],
+    credentials: true
 };
 
 
@@ -93,10 +110,71 @@ app.get("/admin/tickets", async (req, res) =>{
 
     
 
-
-
-
 })
+app.get("/tickets/accepted", async (req, res) =>{
+    const userId = req.session.userId; // Get userId from session
+    const role = req.session.role;
+    if (!userId) {
+        return res.status(401).json({ message: 'User not logged in' });
+    }
+    try {
+        const tickets = await getAcceptedTickets(userId); // Fetch only user's tickets
+        console.log(role)
+        res.json(tickets);
+        
+        
+    } catch (error) {
+        console.error('Error fetching tickets:', error);
+        res.status(500).json({ message: 'Error fetching tickets' });
+    }
+
+    
+})
+
+app.get("/tickets/getTicketsResolves", async (req, res) => {
+    const userId = req.session.userId;
+    const role = req.session.role;
+
+    if (!userId) {
+        return res.status(401).json({ message: 'User not logged in' });
+    }
+
+    try {
+        let tickets;
+        if (role == 2) {
+            tickets = await getTicketResolvedAdmin();
+        } else {
+            tickets = await getTicketResolved(userId);
+        }
+
+        console.log("Tickets fetched successfully:", tickets);
+        res.json(tickets);
+    } catch (error) {
+        console.error('Error fetching tickets:', error);
+        res.status(500).json({ message: 'Error fetching tickets' });
+    }
+});
+// app.get("/tickets/getTicketsResolvesAdmin", async (req, res) => {
+//     const userId = req.session.userId; // Get userId from session
+//     const role = req.session.role;
+
+//     if(!userId){
+//         return res.status(401).json({ message: 'User not logged in' });
+
+//     }
+//     try{
+//         const tickets = await getTicketResolvedAdmin();
+//         console.log(role)
+//         res.json(tickets);
+//     }catch(error){
+//         console.error('Error fetching tickets:', error);
+//         console.log("Received userId:", userId, "Type:", typeof userId);
+
+//         res.status(500).json({ message: 'Error fetching tickets', tickets });
+//     }
+// })
+
+//Function disabled for now getting errors
 
 app.get("/tickets/:id", async (req, res) => {
     const userId = req.session.userId; // Get userId from session
@@ -116,7 +194,10 @@ app.get("/tickets/:id", async (req, res) => {
         console.error('Error fetching ticket:', error);
         res.status(500).json({ message: 'Error fetching ticket' });
     }
-});
+}); 
+
+
+
 app.get("/tickets", async (req, res) => {
     const userId = req.session.userId; // Get userId from session
     const role = req.session.role;
@@ -127,7 +208,7 @@ app.get("/tickets", async (req, res) => {
 
     try {
 
-        if(role ==0 ){
+        if(role ==0 || role =="" ){
             const tickets = await getUserTickets(userId); // Fetch only user's tickets
             console.log(role)
             res.json(tickets);
@@ -157,9 +238,9 @@ app.get('/check-login', (req, res) => {
 
 app.post("/create", async (req, res)=>{
     const userRole = req.session.role;
-    const { FirstName, LastName, Username, Password, Email, Phone, Department } = req.body
+    const { FirstName, LastName, Username, Password, Email, Phone,BranchCode, Department } = req.body
 
-    if (!FirstName || !LastName || !Username || !Password|| !Email || !Phone || !Department) {
+    if (!FirstName || !LastName || !Username || !Password|| !Email || !Phone || !BranchCode || !Department) {
         return res.status(400).send("data not supported");
 
     }
@@ -169,7 +250,7 @@ app.post("/create", async (req, res)=>{
     }
 
     try{
-    const users = await createUser(FirstName, LastName, Username, Password, Email, Phone, Department)
+    const users = await createUser(FirstName, LastName, Username, Password, Email, Phone, BranchCode, Department)
     res.status(201).send({users});
     }catch (error){
         console.error(error);
@@ -218,6 +299,7 @@ app.post('/create-ticket', async (req, res) => {
 
 
 
+
 app.put("/update-ticket/:id", async (req, res) => {
     const userId = req.session.userId; // Get userId from session
 
@@ -245,7 +327,31 @@ app.put("/update-ticket/:id", async (req, res) => {
     }
 });
 
+app.put("/ticket/remarks/:id", async (req, res) => {
+    const userId = req.session.userId; // Get userId from session
+    const { id } = req.params;
+    const { TicketRemarks } = req.body;
 
+    if (!userId) {
+        return res.status(401).json({ message: 'User not logged in' });
+    }
+
+    if (!TicketRemarks) {
+        return res.status(400).json({ message: "Remarks cannot be empty" });
+    }
+
+    try {
+        const updatedTicketData = await uploadRemarks(id, TicketRemarks); // Pass TicketRemarks correctly
+        if (updatedTicketData) {
+            res.status(200).json({ message: "Remarks updated successfully", updatedTicketData });
+        } else {
+            res.status(404).json({ message: "Ticket not found" });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Internal Server Error", error: error.message });
+    }
+});
 
 
 app.put("/delete-ticket/:id", async (req, res) => {
@@ -277,11 +383,13 @@ app.put("/delete-ticket/:id", async (req, res) => {
 
 
 
-
 app.get("/get-session", (req, res) => {
     // Send the session data, e.g., user first name
     if (req.session.userFirstName) {
-      res.json({ userFirstName: req.session.userFirstName });
+      res.json({ 
+        userFirstName: req.session.userFirstName, 
+        userDepartment: req.session.userDepartment 
+    });
     } else {
       res.status(401).json({ message: 'User not logged in' });
     }
@@ -320,6 +428,7 @@ app.post("/login", async (req, res) => {
         req.session.role = user.role;
         req.session.userFirstName = user.userFirstName;
         req.session.userLastName = user.userLastName;
+        req.session.userDepartment = user.department;
         req.session.save(); // Save session to store immediately
         console.log('User ID stored in session:', req.session.userId, 'First Name: ', req.session.userFirstName, 'Last Name: ', req.session.userLastName); // Check if it’s set after login
         res.json({ message: 'Login successful', user });
@@ -349,6 +458,9 @@ app.post("/logout", async (req, res) => {
     }
     
   });
+
+
+
 
   app.get('/check-login', (req, res) => {
     if (req.session.userId) {
@@ -550,7 +662,8 @@ app.get('/api/print/:ticketId', async (req, res) => {
 
 
 
-
+//Designation Ticket add
+//Edit ticket same ID return sender name 
 
 
 
@@ -597,6 +710,7 @@ app.put('/make-admin/:id', async (req, res) => {
     }
 
     try {
+        console.log("user promote to admin: ", userIdToPromote)
         const result = await makeAdmin(userIdToPromote);  // Call the function to promote user to admin
         return res.status(200).json(result);  // Send success message
     } catch (error) {
@@ -644,7 +758,270 @@ app.get('/get-branches', async (req, res) => {
     }
   });
 
+  app.get('/branch/tickets', async (req, res) => {
+    const userId = req.session.userId; // Assuming you have userId from session or token
+    const { branchCode } = req.query; // Extract branchCode from query parameters
 
+    if (!userId) {
+        return res.status(401).json({ message: 'User not logged in' });
+    }
+
+    if (!branchCode) {
+        return res.status(400).json({ message: 'Branch code is required' });
+    }
+
+    try {
+        const branchticket = await getBranchTickets(branchCode);
+        res.status(200).json(branchticket);
+    } catch (err) {
+        console.error('Error fetching branch tickets:', err);
+        res.status(500).json({ message: 'Error fetching branch tickets.' });
+    }
+});
+
+
+app.get('/user/details', async (req, res) => {
+    const userId = req.session.userId; // Assuming you have userId from session or token
+
+    try {
+        const user = await getUserDetails(userId); // Implement this function to fetch user details from the database
+        res.status(200).json(user);
+    } catch (err) {
+        console.error('Error fetching user details:', err);
+        res.status(500).json({ message: 'Error fetching user details.' });
+    }
+});
+
+
+// app.get('/tickets/accepted', async (req, res) => {
+//     const userId = req.session.userId; // Assuming you have userId from session or token
+//     const role = req.session.role;
+
+//     if(!userId){
+//         return res.status(401).json({ message: 'User not logged in' });
+//     }   
+//     try {
+//         const tickets = await getAllTickets();
+//         const acceptedTickets = tickets.filter(ticket => ticket.TicketStatus === '2');
+//         res.status(200).json(acceptedTickets);        
+//     }
+//     catch (err) {
+//         console.error('Error fetching accepted tickets:', err);
+//         res.status(500).json({ message: 'Error fetching accepted tickets.' });
+//     }
+
+// });
+app.get("/tickets/accepted", async (req, res) =>{
+    const userId = req.session.userId; // Get userId from session
+    const role = req.session.role;
+    if (!userId) {
+        return res.status(401).json({ message: 'User not logged in' });
+    }
+    try {
+        const tickets = await getAllTickets(userId); // Fetch only user's tickets
+        console.log(role)
+        res.json(tickets);
+        
+        
+    } catch (error) {
+        console.error('Error fetching tickets:', error);
+        res.status(500).json({ message: 'Error fetching tickets' });
+    }
+
+    
+})
+
+app.put("/mark-open/:id", async (req, res) => {
+    const { id } = req.params;
+    const userId = req.session.userId; // Get userId from session
+    
+    
+
+    if (!userId) {
+        return res.status(401).json({ message: 'User not logged in' });
+    }
+
+    try {
+        const updatedTicket = await openTicket(id);
+        if (updatedTicket) {
+            res.status(200).json({ message: 'Ticket open successfully'});
+        } else {
+            res.status(404).json({ message: 'Ticket not found or already accepted' });
+        }
+    } catch (error) {
+        console.error('Error accepting ticket:', error);
+        // Return a more descriptive error response
+        res.status(500).json({ message: 'Error accepting ticket', error: error.message });
+    }
+});
+
+app.put("/mark-pls/:id", async (req,res) =>{
+    const { id } = req.params;
+    const userId = req.session.userId; // Get userId from session
+
+    if (!userId) {
+        return res.status(401).json({ message: 'User not logged in' });
+    }
+
+    try {
+        const updatedTicket = await plsTicket(id);
+        if (updatedTicket) {
+            res.status(200).json({ message: 'Ticket pls successfully'});
+        } else {
+            res.status(404).json({ message: 'Ticket not found or already accepted' });
+        }
+    } catch (error) {
+        console.error('Error accepting ticket:', error);
+        // Return a more descriptive error response
+        res.status(500).json({ message: 'Error accepting ticket', error: error.message });
+    }
+});
+app.put("/mark-closed/:id", async (req, res) => {
+    const { id } = req.params;
+    const userId = req.session.userId; // Get userId from session
+    
+    
+
+    if (!userId) {
+        return res.status(401).json({ message: 'User not logged in' });
+    }
+
+    try {
+        const updatedTicket = await closeTicket(id);
+        if (updatedTicket) {
+            res.status(200).json({ message: 'Ticket accepted successfully'});
+        } else {
+            res.status(404).json({ message: 'Ticket not found or already accepted' });
+        }
+    } catch (error) {
+        console.error('Error accepting ticket:', error);
+        // Return a more descriptive error response
+        res.status(500).json({ message: 'Error accepting ticket', error: error.message });
+    }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+// app.get('/tickets/accepted', async (req, res) => {
+//     try {
+//         const tickets = await getAllTickets();
+//         res.status(200).json(tickets); // Send the filtered tickets as a response
+//     } catch (error) {
+//         console.error('Error fetching tickets:', error.message);
+//         res.status(500).json({ message: 'Error fetching tickets.' });
+//     }
+// });
+
+// app.get("tickets/accepted", async (req, res) =>{
+//     const userId = req.session.userId; // Get userId from session
+//     const role = req.session.role;
+//     if (!userId) {
+//         return res.status(401).json({ message: 'User not logged in' });
+//     }
+//     try {
+//         const tickets = await getAcceptedTickets(userId); // Fetch only user's tickets
+//         console.log(role)
+//         res.json(tickets);
+        
+        
+//     } catch (error) {
+//         console.error('Error fetching tickets:', error);
+//         res.status(500).json({ message: 'Error fetching tickets' });
+//     }
+
+    
+// })
+
+
+// app.get("/tickets/accepted", async (req, res) =>{
+//     const userId = req.session.userId; // Get userId from session
+//     const role = req.session.role;
+//     if (!userId) {
+//         return res.status(401).json({ message: 'User not logged in' });
+//     }
+//     try {
+//         const tickets = await getAllTickets(userId); // Fetch only user's tickets
+//         console.log(role)
+//         res.json(tickets);
+        
+        
+//     } catch (error) {
+//         console.error('Error fetching tickets:', error);
+//         res.status(500).json({ message: 'Error fetching ticketss' });
+//     }
+
+    
+
+
+
+
+// })
+
+// app.get("/admin/tickets", async (req, res) =>{
+//     const userId = req.session.userId; // Get userId from session
+//     const role = req.session.role;
+//     if (!userId) {
+//         return res.status(401).json({ message: 'User not logged in' });
+//     }
+//     try {
+//         const tickets = await getAllTickets(userId); // Fetch only user's tickets
+//         console.log(role)
+//         res.json(tickets);
+        
+        
+//     } catch (error) {
+//         console.error('Error fetching tickets:', error);
+//         res.status(500).json({ message: 'Error fetching tickets' });
+//     }
+
+    
+
+
+
+
+// })
+
+
+
+
+
+
+// app.get("/tickets", async (req, res) => {
+//     const userId = req.session.userId; // Get userId from session
+//     const role = req.session.role;
+
+//     if (!userId) {
+//         return res.status(401).json({ message: 'User not logged in' });
+//     }
+
+//     try {
+
+//         if(role ==0 ){
+//             const tickets = await getUserTickets(userId); // Fetch only user's tickets
+//             console.log(role)
+//             res.json(tickets);
+//         }else{
+//             const tickets = await getAdminTickets(userId); 
+//             console.log(role)
+//             res.json(tickets);
+//         }
+        
+//     } catch (error) {
+//         console.error('Error fetching tickets:', error);
+//         res.status(500).json({ message: 'Error fetching tickets' });
+//     }
+
+
+// });
 
 
 
@@ -657,6 +1034,8 @@ app.use((err, req, res, next) => {
   })
 
 
-  app.listen(8080, () => {
+  const ip = '192.168.10.245';
+  const port = '8080';
+  app.listen(port, ip, () => {
     console.log('running on 8080')
   })

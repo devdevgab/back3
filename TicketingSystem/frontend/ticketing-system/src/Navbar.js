@@ -43,7 +43,7 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     try {
-        await axios.post('http://localhost:8080/logout', {}, { withCredentials: true });
+        await axios.post('http://192.168.10.245:8080/logout', {}, { withCredentials: true });
         setIsAdmin(false); // Reset admin state on logout
         navigate('/'); // Redirect to login or homepage after logout
         window.location.reload(); // Reload the page
@@ -54,7 +54,7 @@ const Navbar = () => {
 
   const fetchUserRole = async () => {
     try {
-        const response = await axios.get('http://localhost:8080/check-role', { withCredentials: true });
+        const response = await axios.get('http://192.168.10.245:8080/check-role', { withCredentials: true });
         setUserRole(response.data.role); // Set user role from response
     } catch (error) {
         console.error('Error fetching user role:', error);
@@ -90,7 +90,9 @@ const styles ={
                 <Button color="inherit" onClick={() => handleNavigation('/home')}>Home</Button>
                 <Button color="inherit" onClick={() => handleNavigation('/ticketing')}>Create Ticket</Button>
                 {/* <Button color="inherit" onClick={() => handleNavigation('/admin/dashboard')}>Admin Dashboard</Button> */}
-                <Button color="inherit" onClick={() => handleNavigation('/admin/tickets')}>All Tickets</Button>
+                {/* <Button color="inherit" onClick={() => handleNavigation('/admin/tickets')}>All Tickets</Button> */}
+                <Button color="inherit" onClick={() => handleNavigation('/branch/tickets')}>Branch Tickets</Button>
+                <Button color="inherit" onClick={() => handleNavigation('/status')}>Check your ticket progress</Button>
                 <Button color="inherit" onClick={handleLogout}>Logout</Button>
                 {/* <Button color="inherit" onClick={handlePrint}>Print</Button> */}
               </>
@@ -101,6 +103,10 @@ const styles ={
                <Button color="inherit" onClick={() => handleNavigation('/ticketing')}>Create Ticket</Button>
                <Button color="inherit" onClick={() => handleNavigation('/admin/dashboard')}>ICT Dashboard</Button>
                <Button color="inherit" onClick={() => handleNavigation('/admin/tickets')}>All Tickets</Button>
+               <Button color="inherit" onClick={() => handleNavigation('/tickets/accepted')}>Accepted Tickets</Button>
+               <Button color="inherit" onClick={() => handleNavigation('/status')}>Check your ticket progress</Button>
+               
+
                {/* <Button color="inherit" onClick={() => handleNavigation('/ticket/:id')}>Print</Button> */}
                <Button color="inherit" onClick={handleLogout}>Logout</Button>
                
@@ -111,6 +117,7 @@ const styles ={
             ( <>
               <Button color="inherit" onClick={() => handleNavigation('/home')}>Home</Button>
               <Button color="inherit" onClick={() => handleNavigation('/ticketing')}>Create Ticket</Button>
+              <Button color="inherit" onClick={() => handleNavigation('/status')}>Check your ticket progress</Button>
               <Button color="inherit" onClick={handleLogout}>Logout</Button>
               {/* <Button color="inherit" onClick={handlePrint}>Print</Button>                                          */}
               </>
