@@ -139,7 +139,7 @@ app.get("/logs", async (req, res) => {
     }
 
     try {
-        const logs = await getLogs(50); // Fetch latest logs from database
+        const logs = await getLogs(); // Fetch latest logs from database
         res.json(logs);
         
       } catch (error) {

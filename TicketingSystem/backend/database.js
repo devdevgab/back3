@@ -698,7 +698,7 @@ export async function openTicket(id) {
     }
 }
 
-export async function getLogs(limit = 50) {
+export async function getLogs(limit = 500) {
     try {
       const result = await pool
         .request()
