@@ -64,7 +64,18 @@ export async function getUser(id) {
         throw error;
     }
 }
-
+export async function logEntry(id, logDesc) {
+    try {
+        const result = await pool.request()
+            .input('id', sql.Int, id)
+            .input('logDesc', sql.VarChar, logDesc)
+            .query('INSERT INTO tbl_logs (user_id, action) VALUES (@id, @logDesc)');
+        
+        return result.rowsAffected[0] > 0; // Return true if insertion was successful
+    } catch (error) {
+        throw error;
+    }
+}
 
 
 
@@ -687,7 +698,23 @@ export async function openTicket(id) {
     }
 }
 
-
+export async function getLogs(limit = 50) {
+    try {
+      const result = await pool
+        .request()
+        .input("limit", sql.Int, limit)
+        .query(`
+          SELECT TOP (@limit) log_id, user_id, action, action_date 
+          FROM tbl_logs 
+          ORDER BY action_date DESC
+        `);
+  
+      return result.recordset || []; // Return logs as an array
+    } catch (error) {
+      console.error("Error fetching logs:", error);
+      return []; // Propagate error to be handled in the route
+    }
+  }
 
 
 // export async function declineTicketICT(name, id) {

@@ -46,7 +46,7 @@ const Login = () => {
   return (
     <Container component="main" maxWidth="xs">
       <Paper elevation={6} style={{ padding: '16px', marginTop: '32px' }}>
-        <Typography variant="h5">Login</Typography>
+        <Typography variant="h5" sx={{display:'flex', justifyContent: 'center' }}>Login</Typography>
         <form onSubmit={handleLogin} noValidate>
           <TextField
             variant="outlined"

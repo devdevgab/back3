@@ -81,18 +81,9 @@ const AdminDashboard = () => {
       }
     };
     fetchUsers();
-  }, [success]);
+  }, [success]);  
 
-  // Auto-clear Alerts after 5 seconds
-  useEffect(() => {
-    if (success || error) {
-      const timer = setTimeout(() => {
-        setSuccess('');
-        setError('');
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [success, error]);
+  
 
   // Handle Form Input Change
   const handleChange = (e) => {

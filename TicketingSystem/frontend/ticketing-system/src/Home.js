@@ -712,6 +712,21 @@ const Home = () => {
                                                     </span>
                                                 </div>
                                             )}
+                                            {selectedTicket.ticketStatusICT === null && (
+                                                <div style={{ marginBottom: '8px' }}> {/* Adjust the margin as needed */}
+                                                    <span className="status-pending">
+                                                        ICT Pending
+                                                    </span>
+                                                </div>
+                                            )}
+                                            {selectedTicket.ticketResolved == 1  && (
+                                                <div style={{ marginBottom: '8px' }}> {/* Adjust the margin as needed */}
+                                                    <span className="status-declined">
+                                                        Marked as closed 
+                                                    </span>
+                                                </div>
+                                            )}
+                                            
 
 
 

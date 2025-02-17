@@ -212,7 +212,8 @@ const Ticketing = () => {
             label="Ticket Title"
             name="TicketTitle"
             value={ticketData.TicketTitle || ""}
-            placeholder = ""
+        
+            placeholder = "Brief Information of the concern"
             onChange={handleChange}
           />
           <TextField

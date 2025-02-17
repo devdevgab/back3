@@ -1,10 +1,18 @@
 import express from 'express'
-import {getUsers,getTicket,makeAdmin,getUserDetails,uploadRemarks,plsTicket,getTicketResolvedAdmin, getTicketResolved,openTicket, closeTicket, getAcceptedTickets, makeUser,declineTicketICT,acceptTicketICT,getBranchTickets,fetchBranches,getAllTickets,createUser,login, createTicket,updateTicket,deleteTicket, getUserTickets, getAdminTickets, acceptTicket, declineTicket, checkLoginStatus, checkUserRole, getUser} from './database.js'
+import {getUsers,getTicket,makeAdmin,getUserDetails,uploadRemarks,plsTicket, getLogs,getTicketResolvedAdmin, logEntry, getTicketResolved,openTicket, closeTicket, getAcceptedTickets, makeUser,declineTicketICT,acceptTicketICT,getBranchTickets,fetchBranches,getAllTickets,createUser,login, createTicket,updateTicket,deleteTicket, getUserTickets, getAdminTickets, acceptTicket, declineTicket, checkLoginStatus, checkUserRole, getUser} from './database.js'
 import bodyParser from 'body-parser'
 import session from 'express-session';
 import cors from 'cors';
 
 
+
+//WHOEVER TAKES OVER THIS CODE PLEASE MAKE SURE TO CHANGE THE IP ADDRESS TO THE SERVER IP ADDRESS THIS CAN BE DONE ON THE LEFT
+//SIDE OF VS CODE, BY CLICK THE SEARCH BUTTON AND CHOOSING REPLACE
+
+//BEFORE PROCEEDING TO EDIT THE CODE BELOW PLEASE READ THE DOCUMENTATION ON THE BACKEND FOLDER, I PLACED A README FILE THERE
+
+
+//I DONT KNOW HOW I WROTE THIS CODE BUT IT WORKS JUST FOLLOW THE PROPER BACKEND API CALLS AND YOU SHOULD BE FINE
 
 // const express = require('express');
 const app = express()
@@ -25,23 +33,31 @@ app.use(bodyParser.json())
 //     allowedHeaders: ['Content-Type', 'Authorization'],
 //     credentials: true,
 // };
+// const corsOptions = {
+//     origin:(origin, callback ) => {
+//         if(origin){
+//             callback(null, origin);
+//         }
+//         else{
+//             callback(null,true);
+//         }
+
+//     },
+
+    
+    
+//     methods: ['GET', 'POST', 'PUT', 'DELETE'],
+//     allowedHeaders: ['Content-Type','Authorization'],
+//     credentials: true
+// };
+
 const corsOptions = {
-    origin:(origin, callback ) => {
-        if(origin){
-            callback(null, origin);
-        }
-        else{
-            callback(null,true);
-        }
-
-    },
-
-    
-    
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type','Authorization'],
-    credentials: true
-};
+    origin: "http://192.168.10.245:3000", // Allow your frontend origin
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true, // Critical: Allows cookies to be sent
+  };
+  app.use(cors(corsOptions));
 
 
 
@@ -50,13 +66,18 @@ const corsOptions = {
 app.use(cors(corsOptions));
 // app.options('*', cors(corsOptions));
 
-app.use(session({
-    secret: 'your_secret_key', // Replace with a strong secret
-    resave: true, // Force session save on each request
-    saveUninitialized: true, // Ensure a new session is saved even if unmodified
-    cookie: { secure: false } // Set to true if using HTTPS
-}));
-
+app.use(
+    session({
+      secret: "your_secret_key",
+      resave: false, // Avoid unnecessary session saves
+      saveUninitialized: false, // Prevent empty sessions from being created
+      cookie: {
+        secure: false, // Set `true` if using HTTPS
+        httpOnly: true, // Prevent client-side access
+        sameSite: "Lax", // Required for cross-origin cookies
+      },
+    })
+  );
 
 
 app.get("/admin-all-users", async (req, res)=>{
@@ -71,7 +92,16 @@ app.get("/admin-all-users", async (req, res)=>{
     }
     
 
+    
+    
+        
     const data = await getUsers()
+    
+    const logDesc = "User ID Accessed Admin command to list all users: " + req.session.userId + " "+ req.session.userFirstName + " with role: "+ req.session.role;
+    const logUser = req.session.userId;
+
+    const log = await logEntry(logUser, logDesc);
+
     res.send(data)
 })
 
@@ -89,7 +119,35 @@ app.get("/users", async (req, res)=>{
 })
 
 
- 
+app.get("/logs", async (req, res) => {
+    const role = req.session.userFirstName;
+    const userId = req.session.userId; // Get userId from session
+    const userRole = req.session.role; // Get userId from session
+    console.log(userRole)
+    if (!userId) {
+        console.log('Ticket Login log user:', userId);
+        return res.status(401).json({ message: 'User not logged in' });
+    }else{
+        console.log("success log id: " + userId + " and user role: "+ req.session.role) 
+    }
+
+
+  
+    if(userRole !=2 ){
+
+        return res.status(401).json({ message: 'User not admin' });
+    }
+
+    try {
+        const logs = await getLogs(50); // Fetch latest logs from database
+        res.json(logs);
+        
+      } catch (error) {
+        console.error("Error fetching logs:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+
+})
 
 app.get("/admin/tickets", async (req, res) =>{
     const userId = req.session.userId; // Get userId from session
@@ -97,9 +155,28 @@ app.get("/admin/tickets", async (req, res) =>{
     if (!userId) {
         return res.status(401).json({ message: 'User not logged in' });
     }
+    if(role !=2){
+        return res.status(401).json({ message: 'User not admin' });
+    }
     try {
-        const tickets = await getAllTickets(userId); // Fetch only user's tickets
+        const tickets = await getAllTickets(userId); 
         console.log(role)
+
+
+
+        const logDesc = "User ID Accessed Admin Tickets command to get all tickets " + req.session.userId + " "+ req.session.userFirstName + " with role: "+ req.session.role;
+        const logUser = req.session.userId;
+
+        const log = await logEntry(logUser, logDesc);
+
+
+
+
+
+
+
+
+
         res.json(tickets);
         
         
@@ -117,9 +194,18 @@ app.get("/tickets/accepted", async (req, res) =>{
     if (!userId) {
         return res.status(401).json({ message: 'User not logged in' });
     }
+    if(role !=2){
+        return res.status(401).json({ message: 'User not admin' });
+    }
     try {
         const tickets = await getAcceptedTickets(userId); // Fetch only user's tickets
         console.log(role)
+
+        const logDesc = "User ID Accessed Admin command to list all Accepted Tickets by BM and ICT: " + req.session.userId + " "+ req.session.userFirstName + " with role: "+ req.session.role;
+        const logUser = req.session.userId;
+
+        const log = await logEntry(logUser, logDesc);
+
         res.json(tickets);
         
         
@@ -143,6 +229,12 @@ app.get("/tickets/getTicketsResolves", async (req, res) => {
         let tickets;
         if (role == 2) {
             tickets = await getTicketResolvedAdmin();
+            const logDesc = "User ID Accessed Admin command to list all Open and Closed Tickets: " + req.session.userId + " "+ req.session.userFirstName + " with role: "+ req.session.role;
+            const logUser = req.session.userId;
+
+            const log = await logEntry(logUser, logDesc);
+            
+
         } else {
             tickets = await getTicketResolved(userId);
         }
@@ -214,6 +306,11 @@ app.get("/tickets", async (req, res) => {
             res.json(tickets);
         }else{
             const tickets = await getAdminTickets(userId); 
+
+            const logDesc = "User ID Accessed Admin command to list all User Tickets: " + req.session.userId + " "+ req.session.userFirstName + " with role: "+ req.session.role;
+            const logUser = req.session.userId;
+
+            const log = await logEntry(logUser, logDesc);
             console.log(role)
             res.json(tickets);
         }
@@ -251,6 +348,10 @@ app.post("/create", async (req, res)=>{
 
     try{
     const users = await createUser(FirstName, LastName, Username, Password, Email, Phone, BranchCode, Department)
+    const logDesc = "User ID Accessed Admin command to create new user: " + req.session.userId + " "+ req.session.userFirstName + " with role: "+ req.session.role;
+    const logUser = req.session.userId;
+
+    const log = await logEntry(logUser, logDesc);
     res.status(201).send({users});
     }catch (error){
         console.error(error);
@@ -284,11 +385,19 @@ app.post('/create-ticket', async (req, res) => {
         console.log('User IDDD stored in session:', req.session.userId);
         return res.status(401).json({ message: 'Ticket User not logged in' });
     }
+    
   
     try {
         console.log('Ticket Login user:', userId);
         console.log('User IDDD stored in session:', req.session.userId);
+
+        if (!TicketDepartment || !BranchCode || !TicketTitle || !TicketRequestedBy || !TicketDesc || !TicketServiceType || !TicketServiceFor || !NumOfComputers || !NumOfUsers ) {
+        
+            return res.status(402).json({message: "Fields are empty"});
+        }
       const ticket = await createTicket(userId, TicketDepartment, BranchCode, TicketTitle, TicketRequestedBy, TicketDesc, TicketServiceType, TicketServiceFor, TicketStatus, NumOfComputers, NumOfUsers, TicketDeleteStatus);
+      
+      
       res.status(201).json({ message: 'Ticket created successfully', ticket });
     } catch (error) {
       console.error('Error creating ticket:', error);
@@ -419,6 +528,7 @@ app.post("/login", async (req, res) => {
   }
 
   try {
+      
       const user = await login(Username, Password);
       console.log('Login query result:', user); // Debugging output
       console.log('Session after login:', req.session);
@@ -430,7 +540,12 @@ app.post("/login", async (req, res) => {
         req.session.userLastName = user.userLastName;
         req.session.userDepartment = user.department;
         req.session.save(); // Save session to store immediately
-        console.log('User ID stored in session:', req.session.userId, 'First Name: ', req.session.userFirstName, 'Last Name: ', req.session.userLastName); // Check if it’s set after login
+
+        const logDesc = "User logged in ID: " + req.session.userId + " "+ req.session.userFirstName + " with role: "+ req.session.role;
+        const logUser = req.session.userId;
+        const log = await logEntry(logUser, logDesc);
+        console.log('User ID stored in session:', logUser, 'First Name: ', req.session.userFirstName, 'Last Name: ', req.session.userLastName); // Check if it’s set after login
+        
         res.json({ message: 'Login successful', user });
     }
       
@@ -446,10 +561,19 @@ app.post("/login", async (req, res) => {
 
 app.post("/logout", async (req, res) => {
     try{
+        
         if(req.session.id){
+            
+            const logDesc = "User ID Logged out:  " + req.session.userId; + " "+ req.session.userFirstName + " with role: "+ req.session.role;
+            const logUser = req.session.userId;
+
+            const log = await logEntry(logUser, logDesc);
             req.session.destroy(function(err){
                 console.log("session destroyed")
                 res.json({ message: 'Logout successful' });
+                
+
+                
             })
         }
     }catch(error){
@@ -515,6 +639,10 @@ app.put("/accept-ticketICT/:id/:name", async (req, res) => {
     try {
         const updatedTicket = await acceptTicketICT(name, id);
         if (updatedTicket) {
+            const logDesc = "User ID " + req.session.userId +" Accessed Admin command to accept ICT Ticket Side, ticket ID: "+id + " "+ req.session.userFirstName + " with role: "+ req.session.role;
+            const logUser = req.session.userId;
+
+            const log = await logEntry(logUser, logDesc);
             res.status(200).json({ message: 'Ticket accepted successfully', ticket: updatedTicket, ticketAuthor: {firstName: firstName, lastName: lastName}, });
         } else {
             res.status(404).json({ message: 'Ticket not found or already accepted' });
@@ -541,6 +669,10 @@ app.put("/decline-ticketICT/:id/:name", async (req, res) => {
     try {
         const updatedTicket = await declineTicketICT(name, id);
         if (updatedTicket) {
+            const logDesc = "User ID " + req.session.userId +" Accessed Admin command to decline ICT Ticket Side, ticket ID: "+id + " "+ req.session.userFirstName + " with role: "+ req.session.role;
+            const logUser = req.session.userId;
+
+            const log = await logEntry(logUser, logDesc);
             res.status(200).json({ message: 'Ticket declined successfully', ticket: updatedTicket, ticketAuthor: {firstName: firstName, lastName: lastName}, });
         } else {    
             res.status(404).json({ message: 'Ticket not found or already declined' });
@@ -576,7 +708,6 @@ app.put("/decline-ticket/:id/:name", async (req, res) => {
         res.status(500).json({ message: 'Error declining ticket' });
     }
 });
-
 
 
 
@@ -710,6 +841,10 @@ app.put('/make-admin/:id', async (req, res) => {
     }
 
     try {
+        const logDesc = "User ID :" + req.session.userId+ " Accessed Admin command to promote another user: "+userIdToPromote  + " "+ req.session.userFirstName + " with role: "+ req.session.role;
+        const logUser = req.session.userId;
+
+        const log = await logEntry(logUser, logDesc);
         console.log("user promote to admin: ", userIdToPromote)
         const result = await makeAdmin(userIdToPromote);  // Call the function to promote user to admin
         return res.status(200).json(result);  // Send success message
@@ -736,6 +871,12 @@ app.put('/make-user/:id', async (req, res) => {
     }
 
     try {
+        const logDesc = "User ID :" + req.session.userId+ " Accessed Admin command to demote another user: "+userIdToDemote  + " "+ req.session.userFirstName + " with role: "+ req.session.role;
+        const logUser = req.session.userId;
+
+        const log = await logEntry(logUser, logDesc);
+        
+        
         const result = await makeUser(userIdToDemote);  // Call the function to demote user to regular user
         console.log("user to demote:", userIdToDemote)
         console.log("user id in app.js", sessionUser)
@@ -771,6 +912,7 @@ app.get('/get-branches', async (req, res) => {
     }
 
     try {
+
         const branchticket = await getBranchTickets(branchCode);
         res.status(200).json(branchticket);
     } catch (err) {
@@ -842,6 +984,12 @@ app.put("/mark-open/:id", async (req, res) => {
     }
 
     try {
+
+        const logDesc = "User ID :" + req.session.userId+ " Accessed Admin command to mark ticket as open: "+id  + " "+ req.session.userFirstName + " with role: "+ req.session.role;
+        const logUser = req.session.userId;
+
+        const log = await logEntry(logUser, logDesc);
+        
         const updatedTicket = await openTicket(id);
         if (updatedTicket) {
             res.status(200).json({ message: 'Ticket open successfully'});
@@ -864,6 +1012,12 @@ app.put("/mark-pls/:id", async (req,res) =>{
     }
 
     try {
+
+        const logDesc = "User ID :" + req.session.userId+ " Accessed Admin command to mark ticket as sent to pls: "+id  + " "+ req.session.userFirstName + " with role: "+ req.session.role;
+        const logUser = req.session.userId;
+
+        const log = await logEntry(logUser, logDesc);
+        
         const updatedTicket = await plsTicket(id);
         if (updatedTicket) {
             res.status(200).json({ message: 'Ticket pls successfully'});
@@ -887,6 +1041,10 @@ app.put("/mark-closed/:id", async (req, res) => {
     }
 
     try {
+        const logDesc = "User ID :" + req.session.userId+ " Accessed Admin command to mark ticket closed: "+id  + " "+ req.session.userFirstName + " with role: "+ req.session.role;
+        const logUser = req.session.userId;
+
+        const log = await logEntry(logUser, logDesc);
         const updatedTicket = await closeTicket(id);
         if (updatedTicket) {
             res.status(200).json({ message: 'Ticket accepted successfully'});
@@ -899,7 +1057,10 @@ app.put("/mark-closed/:id", async (req, res) => {
         res.status(500).json({ message: 'Error accepting ticket', error: error.message });
     }
 });
+// app.put ("/log-entry/:id", async (req, res) => {
 
+
+// });
 
 
 

@@ -1,4 +1,4 @@
-.footer {
+/* .footer {
   background-color: #1976d2;
   color: white;
   text-align: center;
@@ -6,5 +6,39 @@
   position: fixed;
   bottom: 0;
   width: 100%;
-  z-index: 1000; /* Higher value brings it to the front */
+  z-index: 1000; 
+} */
+
+/* .footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: #1976d2;
+  color: white;
+  text-align: center;
+  padding: 10px;
+  font-size: 14px;
+} */
+/* .footer {
+  position: absolute; 
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: #1976d2; 
+  color: white;
+  text-align: center;
+  padding: 10px;
+  font-size: 14px;
+  height: 50px; 
+} */
+
+.footer {
+  background-color: #1976d2;
+  color: white;
+  text-align: center;
+  font-size: 14px;
+  width: 100%;
+  box-sizing: border-box; /* Ensure padding is included in the width calculation */
+  padding: 10px;
 }

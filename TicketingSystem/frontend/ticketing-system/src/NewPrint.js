@@ -6,6 +6,8 @@ const NewPrint = () => {
   const { id } = useParams(); // Get the ticket ID from the URL
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [error, setError] = useState('');
+  
+
 
   useEffect(() => {
     const fetchTicket = async () => {
@@ -16,9 +18,10 @@ const NewPrint = () => {
         setError(err.response?.data?.message || 'Error fetching ticket');
       }
     };
-
+    
     fetchTicket();
   }, [id]);
+
 
   if (error) {
     return <p>{error}</p>;
@@ -192,7 +195,11 @@ const NewPrint = () => {
               <td style={styles.label}>DEPARTMENT / BRANCH:</td>
               <td style={styles.value}>{selectedTicket.branchCode +" - "+selectedTicket.ticketTitle || "N/A"}</td>
               <td style={styles.label}>DATE REQUESTED:</td>
-              <td style={styles.value}>{selectedTicket.created || "N/A"}</td>
+              
+              {/* <td style={styles.value}>{selectedTicket.created || "N/A"}</td> */}
+
+              <td style={styles.value}>{new Date(selectedTicket.created).toLocaleDateString()  || "N/A"}</td>
+              
             </tr>
             <tr>
               <td style={styles.label}>DETAILS:</td>
@@ -225,7 +232,7 @@ const NewPrint = () => {
             <tbody>
               <tr>
                 <td style={styles.thtd}>{selectedTicket.ticketServiceFor || "N/A"}</td>
-                <td style={styles.thtd}>{"Pending Function"}</td>
+                <td style={styles.thtd}>{selectedTicket.ticketRemarks}</td>
               </tr>
             </tbody>
           </table>
@@ -274,7 +281,10 @@ const NewPrint = () => {
                 <p>{selectedTicket.ticketAuthorAccepted}</p>
               </td>
               <td style={styles.signatureCell}>
-                <p>{"function pending" || "N/A"}</p>
+                <p>{
+                  selectedTicket.ticketResolved == 2 ? "Endorsed to PLS" : "None" 
+                  
+                  }</p>
               </td>
               <td style={styles.signatureCell}>
                 <p>FAITH T. MASANEGRA, RN, MBA</p>

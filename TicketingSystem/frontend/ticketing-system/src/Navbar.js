@@ -84,6 +84,8 @@ const styles ={
           <Box>
             
             {/* Conditional rendering based on isAdmin state */}
+            
+
             {
             userRole === 1 ? (
               <>
@@ -105,6 +107,7 @@ const styles ={
                <Button color="inherit" onClick={() => handleNavigation('/admin/tickets')}>All Tickets</Button>
                <Button color="inherit" onClick={() => handleNavigation('/tickets/accepted')}>Accepted Tickets</Button>
                <Button color="inherit" onClick={() => handleNavigation('/status')}>Check your ticket progress</Button>
+               <Button color="inherit" onClick={() => handleNavigation('/logs')}>Logs</Button> 
                
 
                {/* <Button color="inherit" onClick={() => handleNavigation('/ticket/:id')}>Print</Button> */}
