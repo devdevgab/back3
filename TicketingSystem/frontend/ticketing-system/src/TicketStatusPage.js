@@ -414,7 +414,7 @@ const TicketStatusPage = () => {
                     ? { 
                         ...ticket, 
                     
-                        ticketResolved: 1
+                        ticketResolved: 2
                     
                     } 
                     : ticket
@@ -538,7 +538,58 @@ const TicketStatusPage = () => {
                     ? { 
                         ...ticket, 
                     
-                        ticketResolved: 2
+                        ticketResolved: 3
+                    
+                    } 
+                    : ticket
+                )
+            
+            );
+       
+            handleClose();
+        } catch (error) {
+            console.error('Error accepting ticket:', error);
+        }
+    };
+
+    const handleProgressMark = async () => {
+        if (!selectedTicket) return;
+
+        try{
+            const updatedProgress =  await handleMarkProgress(selectedTicket.ticketId);
+            if (updatedProgress) {
+                setTickets(prevTickets =>
+                    prevTickets.map(ticket =>
+                        ticket.ticketResolved === updatedProgress.ticketResolved ? updatedProgress : ticket
+                    )
+                );
+                setPopupMessage('Success! Ticket Accepted.');
+            }
+            
+
+        }catch(error){
+            
+        }
+    }
+    const handleMarkProgress = async (ticketId) => {
+        try {
+            const response = await fetch(`http://192.168.10.245:8080/mark-in-progress/${ticketId}`, {
+                method: 'PUT',
+                credentials: 'include',
+            });
+            const updatedTicket = await response.json();
+            const reload= "requires reload";
+            // const tempUser = req.session.user.ticketAuthorAccepted;
+            // Remove the accepted ticket from the list
+            // setTickets(prevTickets => prevTickets.filter(ticket => ticket.ticketId !== ticketId));
+          
+           setTickets(prevTickets =>
+                prevTickets.map(ticket =>
+                    ticket.ticketId === ticketId 
+                    ? { 
+                        ...ticket, 
+                    
+                        ticketResolved: 1
                     
                     } 
                     : ticket
@@ -833,29 +884,36 @@ const TicketStatusPage = () => {
                                         {ticket.ticketResolved == 0 && (
                                                 <div style={{ marginBottom: '8px' }}> {/* Adjust the margin as needed */}
                                                     <span className="status-accepted">
-                                                        In Progress 
+                                                        Open
                                                     </span>
                                                 </div>
                                             )}
                                         {ticket.ticketResolved == null && (
                                                 <div style={{ marginBottom: '8px' }}> {/* Adjust the margin as needed */}
                                                     <span className="status-accepted">
-                                                        In Progress 
+                                                        Open 
                                                     </span>
                                                 </div>
                                             )}
                                         {ticket.ticketResolved == 1 && (
                                                 <div style={{ marginBottom: '8px' }}> {/* Adjust the margin as needed */}
-                                                    <span className="status-declined">
-                                                        Closed
+                                                    <span className="status-in-progress">
+                                                        In Progress
                                                     </span>
                                                 </div>
                                             )}
 
                                         {ticket.ticketResolved == 2 && (
                                                 <div style={{ marginBottom: '8px' }}> {/* Adjust the margin as needed */}
+                                                    <span className="status-declined">
+                                                        Closed
+                                                    </span>
+                                                </div>
+                                            )}
+                                        {ticket.ticketResolved == 3 && (
+                                                <div style={{ marginBottom: '8px' }}> {/* Adjust the margin as needed */}
                                                     <span className="status-pls">
-                                                        Sent to PLS 
+                                                        Sent to PLS
                                                     </span>
                                                 </div>
                                             )}
@@ -1102,6 +1160,24 @@ const TicketStatusPage = () => {
                     )}
                     {userRole === 2 && ( // Check if the user role is ICT
                         <>
+                            
+                            <Button
+                                onClick={handleOpenMark}
+                                color="secondary"
+                                variant="contained"
+                            >
+                                Mark as Open
+                            </Button>
+                            
+                            <Button
+                                onClick={handleProgressMark}
+                                color="primary"
+                                variant="contained"
+                            >
+                                Mark as In Progress
+
+                            </Button>
+
                             <Button
                                 onClick={handleCloseMark}
                                 color="primary"
@@ -1109,13 +1185,7 @@ const TicketStatusPage = () => {
                             >
                                 Mark as Closed
                             </Button>
-                            <Button
-                                onClick={handleOpenMark}
-                                color="secondary"
-                                variant="contained"
-                            >
-                                Mark as In Progress
-                            </Button>
+                            
                             
                             <Button
                                 onClick={handlePLSMark}

@@ -506,6 +506,20 @@ export async function getAdminTickets(id) {
         throw error; // Propagate any error that occurs
     }
 }
+
+export async function getATickets() {
+    try {
+        const result = await pool.request()
+            .query('SELECT * FROM tbl_tickets ');
+
+        return result.recordset; // Return the tickets
+    } catch (error) {
+        throw error; // Propagate any error that occurs
+    }
+}
+
+
+
 //   export async function getAllTickets(){
 //     const query = `SELECT * FROM tbl_tickets`; // Adjust the table and column names as needed
 //     const [tickets] = await pool.execute(query);
@@ -653,7 +667,7 @@ export async function acceptTicketICT(name, id) {
 }
 
 export async function closeTicket(id) {
-    const ticketClosed = 1; // Closed
+    const ticketClosed = 2; // Closed
     const ticketResoDate = new Date(); // Current date and time for resolution date
 
     try {
@@ -677,6 +691,28 @@ export async function closeTicket(id) {
 
 export async function openTicket(id) {
     const ticketClosed = 0; // Open
+    const ticketResoDate = new Date(); // Current date and time for resolution date
+
+    try {
+        const result = await pool.request()
+            .input('ticketClosed', sql.Int, ticketClosed)
+            .input('ticketId', sql.Int, id)
+            .query(
+                'UPDATE tbl_tickets SET ticketResolved = @ticketClosed WHERE ticketId = @ticketId'
+            );
+
+        if (result.rowsAffected[0] > 0) {
+            const updatedTicket = await getTicket(id); // Fetch the updated ticket
+            return updatedTicket;
+        } else {
+            return null; // Ticket not found or not updated
+        }
+    } catch (error) {
+        throw error; // Handle error appropriately
+    }
+}
+export async function inProgressTicket(id) {
+    const ticketClosed = 1; // Open
     const ticketResoDate = new Date(); // Current date and time for resolution date
 
     try {
@@ -738,7 +774,7 @@ export async function getLogs(limit = 500) {
 //     }
 // }
 export async function plsTicket (id){
-    const ticketStatus = 2; // PLS
+    const ticketStatus = 3; // PLS
     const ticketResoDate = new Date(); // Current date and time for resolution date
 
     try {

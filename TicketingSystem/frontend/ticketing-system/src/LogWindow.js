@@ -79,7 +79,8 @@ export default function LogWindow() {
             ) : (
               logs.map((log, index) => (
                 <TableRow key={log.log_id} sx={{ backgroundColor: index % 2 === 0 ? "#f5f5f5" : "white" }}>
-                  <TableCell>{new Date(log.action_date).toLocaleString()}</TableCell>
+                  {/* <TableCell>{new Date(log.action_date).toLocaleString()}</TableCell> */}
+                  <TableCell>{log.action_date}</TableCell>
                   <TableCell>{log.user_id}</TableCell>
                   <TableCell>{log.action}</TableCell>
                 </TableRow>

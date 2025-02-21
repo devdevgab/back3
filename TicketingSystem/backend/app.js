@@ -1,5 +1,5 @@
 import express from 'express'
-import {getUsers,getTicket,makeAdmin,getUserDetails,uploadRemarks,plsTicket, getLogs,getTicketResolvedAdmin, logEntry, getTicketResolved,openTicket, closeTicket, getAcceptedTickets, makeUser,declineTicketICT,acceptTicketICT,getBranchTickets,fetchBranches,getAllTickets,createUser,login, createTicket,updateTicket,deleteTicket, getUserTickets, getAdminTickets, acceptTicket, declineTicket, checkLoginStatus, checkUserRole, getUser} from './database.js'
+import {getUsers,getTicket,makeAdmin,getUserDetails,uploadRemarks,plsTicket, inProgressTicket,getATickets,getLogs,getTicketResolvedAdmin, logEntry, getTicketResolved,openTicket, closeTicket, getAcceptedTickets, makeUser,declineTicketICT,acceptTicketICT,getBranchTickets,fetchBranches,getAllTickets,createUser,login, createTicket,updateTicket,deleteTicket, getUserTickets, getAdminTickets, acceptTicket, declineTicket, checkLoginStatus, checkUserRole, getUser} from './database.js'
 import bodyParser from 'body-parser'
 import session from 'express-session';
 import cors from 'cors';
@@ -288,7 +288,25 @@ app.get("/tickets/:id", async (req, res) => {
     }
 }); 
 
+app.get("/Atickets", async (req, res) => {
+   
 
+
+    try {
+
+            const tickets = await getATickets(); 
+
+
+            res.json(tickets);
+        
+        
+    } catch (error) {
+        console.error('Error fetching tickets:', error);
+        res.status(500).json({ message: 'Error fetching tickets' });
+    }
+
+
+});
 
 app.get("/tickets", async (req, res) => {
     const userId = req.session.userId; // Get userId from session
@@ -534,6 +552,7 @@ app.post("/login", async (req, res) => {
       console.log('Session after login:', req.session);
 
       if (user) {
+
         req.session.userId = user.userId; // Store userId in session
         req.session.role = user.role;
         req.session.userFirstName = user.userFirstName;
@@ -541,6 +560,7 @@ app.post("/login", async (req, res) => {
         req.session.userDepartment = user.department;
         req.session.save(); // Save session to store immediately
 
+        
         const logDesc = "User logged in ID: " + req.session.userId + " "+ req.session.userFirstName + " with role: "+ req.session.role;
         const logUser = req.session.userId;
         const log = await logEntry(logUser, logDesc);
@@ -972,6 +992,40 @@ app.get("/tickets/accepted", async (req, res) =>{
 
     
 })
+
+
+app.put("/mark-in-progress/:id", async (req, res) => {
+    const { id } = req.params;
+    const userId = req.session.userId; // Get userId from session
+    
+    
+
+    if (!userId) {
+        return res.status(401).json({ message: 'User not logged in' });
+    }
+
+    try {
+
+        const logDesc = "User ID :" + req.session.userId+ " Accessed Admin command to mark ticket as in progress: "+id  + " "+ req.session.userFirstName + " with role: "+ req.session.role;
+        const logUser = req.session.userId;
+
+        const log = await logEntry(logUser, logDesc);
+        
+        const updatedTicket = await inProgressTicket(id);
+        if (updatedTicket) {
+            res.status(200).json({ message: 'Ticket moved to in progress successfully'});
+        } else {
+            res.status(404).json({ message: 'Ticket not found or already accepted' });
+        }
+    } catch (error) {
+        console.error('Error accepting ticket:', error);
+        // Return a more descriptive error response
+        res.status(500).json({ message: 'Error accepting ticket', error: error.message });
+    }
+});
+
+
+
 
 app.put("/mark-open/:id", async (req, res) => {
     const { id } = req.params;

@@ -14,6 +14,7 @@ import {
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const navigate = useNavigate();
@@ -28,15 +29,27 @@ const Login = () => {
       const response = await axios.post('http://192.168.10.245:8080/login', {
          Username: username,
          Password: password,
+         role: role,
       }, { withCredentials: true }); // Enable session cookies
 
 
        if (response.data.userFirstName) {
         setUserFirstName(response.data.userFirstName);  // Set the userFirstName in context
         console.log('User First Name:', response.data.userFirstName);
+        
       }
-      setSuccess(response.data.message);
-      navigate('/home');  // Redirect to Ticketing
+      if(response.data.user.role == 3){
+        setSuccess(response.data.message);
+        
+        navigate('/pls-view');  // Redirect to Ticketing
+        
+      }else{
+        console.log("ROLE: ", response.data.user.role);
+        setSuccess(response.data.message);
+        navigate('/home');  // Redirect to Ticketing
+      }
+
+      
    } catch (err) {
       setError(err.response?.data?.message || 'An error occurred');
    }

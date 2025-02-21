@@ -14,6 +14,8 @@ import BranchTickets from './BranchTickets';
 import AcceptedTickets from './AcceptedTickets';
 import TicketStatusPage from './TicketStatusPage';
 import LogWindow from "./LogWindow";
+import TicketView from './TicketView';
+import PLSView from './PLSView';
 import Footer from './Footer';
 import './css/Footer.css';
 
@@ -57,6 +59,8 @@ const AppContent = () => {
     
 
     <div className="App">
+      
+      
       {!isNewPrintPage && <Navbar />}
       <div className="content">
       <Routes>
@@ -70,7 +74,10 @@ const AppContent = () => {
         <Route path="/tickets/accepted" element={<AcceptedTickets />} />
         <Route path="/print" element={<Print />} />
         <Route path="/ticket/:id" element={<NewPrint tickets={tickets} />} />
+        <Route path="/dashboard" element={<TicketView />} />
+        <Route path="/pls-view" element={<PLSView />} />
         <Route path="/logs" element={<LogWindow  />} />
+        
         
         
         <Route path="/print/:id" element={<PrintPage />} />

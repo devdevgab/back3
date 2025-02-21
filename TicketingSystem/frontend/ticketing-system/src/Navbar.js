@@ -115,7 +115,12 @@ const styles ={
                
               </>
 
-            ):  
+            ): 
+            userRole === 3 ?(
+              <>
+             <Button color="inherit" onClick={handleLogout}>Logout</Button>
+              </>
+            ): 
             userRole === 0 &&
             ( <>
               <Button color="inherit" onClick={() => handleNavigation('/home')}>Home</Button>
