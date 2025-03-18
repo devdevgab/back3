@@ -495,6 +495,18 @@ export async function getUserTickets(userId) {
 //     return tickets;
 //   };
 
+export async function getPLSTickets(){
+    try {
+        const result = await pool.request()
+            .query('SELECT * FROM tbl_tickets ');
+
+        return result.recordset; // Return the tickets
+    } catch (error) {
+        throw error; // Propagate any error that occurs
+    }
+
+}
+
 export async function getAdminTickets(id) {
     try {
         const result = await pool.request()

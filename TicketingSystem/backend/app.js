@@ -1,5 +1,5 @@
 import express from 'express'
-import {getUsers,getTicket,makeAdmin,getUserDetails,uploadRemarks,plsTicket, inProgressTicket,getATickets,getLogs,getTicketResolvedAdmin, logEntry, getTicketResolved,openTicket, closeTicket, getAcceptedTickets, makeUser,declineTicketICT,acceptTicketICT,getBranchTickets,fetchBranches,getAllTickets,createUser,login, createTicket,updateTicket,deleteTicket, getUserTickets, getAdminTickets, acceptTicket, declineTicket, checkLoginStatus, checkUserRole, getUser} from './database.js'
+import {getUsers,getTicket,makeAdmin,getUserDetails,uploadRemarks,plsTicket,getPLSTickets, inProgressTicket,getATickets,getLogs,getTicketResolvedAdmin, logEntry, getTicketResolved,openTicket, closeTicket, getAcceptedTickets, makeUser,declineTicketICT,acceptTicketICT,getBranchTickets,fetchBranches,getAllTickets,createUser,login, createTicket,updateTicket,deleteTicket, getUserTickets, getAdminTickets, acceptTicket, declineTicket, checkLoginStatus, checkUserRole, getUser} from './database.js'
 import bodyParser from 'body-parser'
 import session from 'express-session';
 import cors from 'cors';
@@ -148,6 +148,40 @@ app.get("/logs", async (req, res) => {
       }
 
 })
+app.get ("/pls/tickets" , async (req, res) => 
+    {
+        const userId = req.session.userId; // Get userId from session
+        const role = req.session.role;
+        if (!userId) {
+            return res.status(401).json({ message: 'User not logged in' });
+        }
+        if(role !=3 ){
+            return res.status(401).json({ message: 'User not admin' });
+        }
+        try {
+            
+                const tickets = await getPLSTickets(); 
+                console.log(role)
+        
+        
+                const logDesc = "User ID Accessed Admin Tickets command to get all tickets " + req.session.userId + " "+ req.session.userFirstName + " with role: "+ req.session.role;
+                const logUser = req.session.userId;
+        
+                const log = await logEntry(logUser, logDesc);
+        
+    
+                res.json(tickets);
+            
+            
+            
+        }catch (error) {
+            console.error('Error fetching tickets:', error);
+            res.status(500).json({ message: 'Error fetching tickets' });
+        }
+    
+        
+    
+    });
 
 app.get("/admin/tickets", async (req, res) =>{
     const userId = req.session.userId; // Get userId from session
@@ -155,29 +189,44 @@ app.get("/admin/tickets", async (req, res) =>{
     if (!userId) {
         return res.status(401).json({ message: 'User not logged in' });
     }
-    if(role !=2){
+    if(role !=2 ){
         return res.status(401).json({ message: 'User not admin' });
     }
     try {
-        const tickets = await getAllTickets(userId); 
-        console.log(role)
+        if(role == 2){
+            const tickets = await getAllTickets(userId); 
+            console.log(role)
+    
+    
+    
+            const logDesc = "User ID Accessed Admin Tickets command to get all tickets " + req.session.userId + " "+ req.session.userFirstName + " with role: "+ req.session.role;
+            const logUser = req.session.userId;
+    
+            const log = await logEntry(logUser, logDesc);
+    
+    
+    
+    
+    
+    
+    
+    
+    
+            res.json(tickets);
+        }if(role == 3){
+            const tickets = await getAllTickets(userId); 
+            console.log(role)
+    
+    
+    
+            const logDesc = "User ID Accessed Admin Tickets command to get all tickets " + req.session.userId + " "+ req.session.userFirstName + " with role: "+ req.session.role;
+            const logUser = req.session.userId;
+    
+            const log = await logEntry(logUser, logDesc);
+    
 
-
-
-        const logDesc = "User ID Accessed Admin Tickets command to get all tickets " + req.session.userId + " "+ req.session.userFirstName + " with role: "+ req.session.role;
-        const logUser = req.session.userId;
-
-        const log = await logEntry(logUser, logDesc);
-
-
-
-
-
-
-
-
-
-        res.json(tickets);
+        }
+       
         
         
     } catch (error) {

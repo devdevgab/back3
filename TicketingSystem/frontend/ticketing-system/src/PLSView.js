@@ -119,7 +119,7 @@ const PLSView = () => {
 
         const fetchTickets = async () => {
             try {
-                const response = await axios.get('http://192.168.10.245:8080/Atickets', { withCredentials: true });
+                const response = await axios.get('http://192.168.10.245:8080/pls/tickets', { withCredentials: true });
                 if (isMounted) {
                     setTickets(response.data);
                     console.log('Fetched Tickets:', response.data);

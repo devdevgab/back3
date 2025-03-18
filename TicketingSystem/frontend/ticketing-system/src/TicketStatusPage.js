@@ -100,6 +100,8 @@ const TicketStatusPage = () => {
     const [rowsPerPage, setRowsPerPage] = useState(5);
     const [open, setOpen] = useState(false);
     const [openSecondModal, setOpenSecondModal] = useState(false);
+    const [openThirdModal, setOpenThirdModal] = useState(false);
+   
     const [openPop, setOpenPop] = useState(false);
     const [selectedTicket, setSelectedTicket] = useState(null);
     const [userRole, setUserRole] = useState(null);
@@ -109,6 +111,7 @@ const TicketStatusPage = () => {
     const [remarks, setRemarks] = useState("");
     const [success, setSuccess] = useState('');
     const [loginPrompt, setLoginPrompt] = useState(false);
+    
     // const { userFirstName } = useContext(UserProvider)
     // const history = useHistory();
     const navigate = useNavigate();
@@ -778,6 +781,12 @@ const TicketStatusPage = () => {
         setOpenSecondModal(true);
 
     }
+    const handleOpen3rdModal = () =>{
+        setOpenThirdModal(true);
+    }
+    const handleClose3rdModal = () =>{
+        setOpenThirdModal(false);
+    } 
     const handleClose2ndModal = () =>{
         setOpenSecondModal(false);
     }  
@@ -1188,12 +1197,36 @@ const TicketStatusPage = () => {
                             
                             
                             <Button
-                                onClick={handlePLSMark}
+                                onClick={handleOpen3rdModal}
                                 variant="contained"
                                 
                             >
                                 Mark as P.L.S submitted
                             </Button>
+                            {openPop && (
+                                <Dialog open={openPop} onClose={handlePopClose}>
+                                    <DialogTitle sx={{ color: '#d32f2f', fontWeight: 'bold' }}>
+                                        Error
+                                    </DialogTitle>
+                                    <DialogContent>
+                                        <DialogContentText sx={{ fontSize: '1.1rem' }}>
+                                            {alertMessage}
+                                        </DialogContentText>
+                                    </DialogContent>
+                                    <DialogActions>
+                                        <Button
+                                            onClick={handlePopClose}
+                                            sx={{
+                                                color: '#ffffff',
+                                                backgroundColor: '#d32f2f',
+                                                '&:hover': { backgroundColor: '#b71c1c' }
+                                            }}
+                                        >
+                                            OK
+                                        </Button>
+                                    </DialogActions>
+                                </Dialog>
+                            )}
 
 
                         
